@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { FASES } from './conselho/dados-base'
 import type { CardData, TurnoData } from './conselho/dados-base'
+import { FASES } from './conselho/turnos-fase1'
 import { Obj169Joke, type Obj169Stage } from './conselho/Obj169Joke'
 
 const STORAGE_KEY = 'conselho_global_save_v2'
