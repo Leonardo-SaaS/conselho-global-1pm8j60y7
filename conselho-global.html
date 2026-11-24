@@ -948,6 +948,19 @@
         cursor: default;
       }
 
+      .obj169-rolling .obj169-tape {
+        animation: obj169Scroll 5s linear forwards;
+      }
+
+      @keyframes obj169Scroll {
+        from {
+          transform: translateY(0);
+        }
+        to {
+          transform: translateY(-88%);
+        }
+      }
+
       .odds-list {
         list-style: none;
         display: flex;
@@ -1248,6 +1261,9 @@
         const odsSectionEl = document.getElementById('odsSection')
         if (!overlayEl || !speechEl || !odsSectionEl) return
 
+        state.obj169Stage = 'rodando'
+        saveState()
+
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
         speechEl.style.display = 'none'
         odsSectionEl.style.display = 'none'
@@ -1256,10 +1272,15 @@
         const showSpeech = () => {
           overlayEl.style.display = 'none'
           speechEl.style.display = 'block'
+          state.obj169Stage = 'fala'
+          saveState()
         }
         const showOds = () => {
           speechEl.style.display = 'none'
           odsSectionEl.style.display = 'block'
+          state.obj169Stage = 'concluido'
+          saveState()
+          enableChoiceButtons()
         }
 
         if (reduceMotion) {
@@ -1716,25 +1737,11 @@
           ],
         },
       ]
-      // Vincular os turnos às fases
-      FASES[0].turnos = TURNOS.slice()
-      FASES[1].turnos = TURNOS_FASE_2.slice()
-      FASES[2].turnos = TURNOS_FASE_3.slice()
-
-      /* Junta todos os turnos (motor continua iterando um único array) */
-      const TODOS_TURNOS = [...TURNOS, ...TURNOS_FASE_2, ...TURNOS_FASE_3]
-
-      function getPhaseOfTurn(turnIndex) {
-        if (turnIndex < TURNOS.length) return 1
-        if (turnIndex < TURNOS.length + TURNOS_FASE_2.length) return 2
-        return 3
-      }
-
       /* =========================================================================
        DADOS DO JOGO — ARRAY DE TURNOS (FASE 1: 1944–1970)
        Efeitos: [Estabilidade Econômica, Direitos Humanos & Desenv., Capacidade Humanitária]
        Textos EXATOS conforme especificação do projeto.
-       (Fases 2 e 3 adicionadas abaixo, em arrays separados e comentados)
+       (Fases 2 e 3 em TURNOS_FASE_2 e TURNOS_FASE_3, declarados acima)
        ========================================================================= */
       const TURNOS = [
         // TURNO 1 (1944) — tipo: "decisão"
@@ -1965,6 +1972,20 @@
         },
       ]
 
+      // Vincular os turnos às fases
+      FASES[0].turnos = TURNOS.slice()
+      FASES[1].turnos = TURNOS_FASE_2.slice()
+      FASES[2].turnos = TURNOS_FASE_3.slice()
+
+      /* Junta todos os turnos (motor continua iterando um único array) */
+      const TODOS_TURNOS = [...TURNOS, ...TURNOS_FASE_2, ...TURNOS_FASE_3]
+
+      function getPhaseOfTurn(turnIndex) {
+        if (turnIndex < TURNOS.length) return 1
+        if (turnIndex < TURNOS.length + TURNOS_FASE_2.length) return 2
+        return 3
+      }
+
       /* =========================================================================
        GERENCIAMENTO DE ESTADO EM MEMÓRIA + LOCALSTORAGE
        ========================================================================= */
@@ -1991,8 +2012,9 @@
         cardOpenBlocking: false,
         // Fase corrente (1, 2 ou 3) e flag da tela de fim de fase
         faseAtual: 1,
-        // Piada dos 169 objetivos: etapa atual ('rodando' | 'fala' | 'lista')
-        obj169Stage: 'rodando',
+        // Piada dos 169 objetivos (turno 2015 — Fase 3): etapa atual
+        // ('aguardando' | 'rodando' | 'fala' | 'concluido')
+        obj169Stage: 'aguardando',
       }
 
       let state = JSON.parse(JSON.stringify(INITIAL_STATE))
@@ -2084,9 +2106,13 @@
           if (state.view === 'intro') {
             turnIndicatorEl.textContent = 'Preparação do Conselho'
           } else if (state.view === 'phase_end') {
-            turnIndicatorEl.textContent = 'Fim da Fase 1 — 1970'
+            const turnosDaFase = FASES[state.faseAtual - 1] ? FASES[state.faseAtual - 1].turnos : []
+            const anoFimDaFase = turnosDaFase.length
+              ? turnosDaFase[turnosDaFase.length - 1].ano
+              : ''
+            turnIndicatorEl.textContent = `Fim da Fase ${state.faseAtual} — ${anoFimDaFase}`
           } else {
-            const currentTurn = TURNOS[state.turnIndex]
+            const currentTurn = TODOS_TURNOS[state.turnIndex]
             if (currentTurn) {
               turnIndicatorEl.textContent = `Turno ${currentTurn.id} — Ano ${currentTurn.ano}`
             }
@@ -2171,8 +2197,15 @@
         modalEl.style.display = 'none'
         if (state.cardOpenBlocking) {
           state.cardOpenBlocking = false
-          // Habilitar os botões de escolha na tela
-          enableChoiceButtons()
+          // No turno da Agenda 2030 (id 16 — Fase 3), fechar o card dá início
+          // à piada dos 169 objetivos; nos demais, libera as escolhas
+          const turnoAposCard = TODOS_TURNOS[state.turnIndex]
+          if (turnoAposCard && turnoAposCard.id === 16 && state.obj169Stage !== 'concluido') {
+            startObj169Joke()
+          } else {
+            // Habilitar os botões de escolha na tela
+            enableChoiceButtons()
+          }
         }
       })
 
@@ -2209,7 +2242,7 @@
       })
 
       function findCardById(cardId) {
-        for (const t of TURNOS) {
+        for (const t of TODOS_TURNOS) {
           if (t.card && t.card.id === cardId) {
             return t.card
           }
@@ -2256,7 +2289,7 @@
        INTERAÇÕES DE JOGO (ESCOLHAS, CONSEQUÊNCIAS E DECISÕES HISTÓRICAS)
        ========================================================================= */
       function handleChoiceClick(optionIndex) {
-        const currentTurn = TURNOS[state.turnIndex]
+        const currentTurn = TODOS_TURNOS[state.turnIndex]
         if (!currentTurn) return
 
         const chosenOption = currentTurn.opcoes[optionIndex]
@@ -2307,8 +2340,8 @@
 
         state.feedbackNotice = null
 
-        // Avançar para o próximo turno ou finalizar fase 1
-        if (state.turnIndex + 1 < TURNOS.length) {
+        // Avançar para o próximo turno ou finalizar a fase corrente
+        if (state.turnIndex + 1 < TODOS_TURNOS.length) {
           state.turnIndex += 1
           state.view = 'turn'
           saveState()
@@ -2471,8 +2504,12 @@
 
       // 2. TELA DO TURNO
       function renderTurnView() {
-        const currentTurn = TURNOS[state.turnIndex]
+        const currentTurn = TODOS_TURNOS[state.turnIndex]
         if (!currentTurn) return
+
+        // Turno da Agenda 2030 (id 16 — Fase 3): piada dos 169 objetivos
+        const isTurn169 = currentTurn.id === 16
+        const blockedByJoke = isTurn169 && state.obj169Stage !== 'concluido'
 
         const disabledOptionsForThisTurn = state.disabledOptionIds[currentTurn.id] || []
         const hasDisabledWrongOptions = disabledOptionsForThisTurn.length > 0
@@ -2506,7 +2543,9 @@
             }
 
             const disabledAttr =
-              isWrongAndDisabled || mustBlockInitially || state.cardOpenBlocking ? 'disabled' : ''
+              isWrongAndDisabled || mustBlockInitially || state.cardOpenBlocking || blockedByJoke
+                ? 'disabled'
+                : ''
             const classModifier = isWrongAndDisabled ? 'disabled-wrong' : dominantClass
 
             return `
@@ -2556,13 +2595,46 @@
               : ''
           }
 
+          ${
+            isTurn169 && state.obj169Stage !== 'concluido'
+              ? `
+          <!-- PIADA DOS 169 OBJETIVOS: ROLAGEM GIGANTE → FALA → 17 ODS -->
+          <div class="obj169-overlay" id="obj169Overlay" style="display: block">
+            <div class="obj169-tape" id="obj169Tape">${buildObj169Html()}</div>
+          </div>
+          `
+              : ''
+          }
+
           <!-- FALA DO CONSELHEIRO (PIADA LEVE EXATA) -->
           ${
             currentTurn.piada
               ? `
-            <div class="counselor-quote">
+            <div class="counselor-quote" ${
+              isTurn169 && state.obj169Stage !== 'concluido'
+                ? 'id="obj169Speech" style="display: none"'
+                : ''
+            }>
               ${escapeHtml(currentTurn.piada)}
             </div>
+          `
+              : ''
+          }
+
+          ${
+            isTurn169
+              ? `
+          <!-- LISTA DOS 17 ODS (SURGE APÓS A PIADA DOS 169 OBJETIVOS) -->
+          <div id="odsSection" style="display: ${
+            state.obj169Stage === 'concluido' ? 'block' : 'none'
+          }">
+            <div class="choices-title">Os 17 Objetivos de Desenvolvimento Sustentável</div>
+            <ul class="odds-list">
+              ${ODS_LISTA.map(
+                (ods, i) => `<li><span class="odds-num">${i + 1}</span> ${escapeHtml(ods)}</li>`,
+              ).join('')}
+            </ul>
+          </div>
           `
               : ''
           }
@@ -2583,6 +2655,17 @@
             handleChoiceClick(idx)
           })
         })
+
+        // Piada dos 169 objetivos (turno 2015): iniciar quando o card já foi
+        // lido/fechado e a sequência ainda não terminou
+        if (
+          isTurn169 &&
+          state.obj169Stage !== 'concluido' &&
+          !mustBlockInitially &&
+          !state.cardOpenBlocking
+        ) {
+          startObj169Joke()
+        }
       }
 
       // 3. TELA DE CONSEQUÊNCIA (TOM GRAVE, RADIAL ESCURECIDO)
@@ -2612,19 +2695,22 @@
         })
       }
 
-      // 4. TELA DE FIM DA FASE 1
+      // 4. TELA DE FIM DE FASE (dinâmica: Fases 1, 2 e 3)
       function renderPhaseEndView() {
+        const fase = FASES[state.faseAtual - 1] || FASES[0]
+        const isUltimaFase = state.faseAtual >= FASES.length
+
         appRoot.innerHTML = `
-        <div class="parchment-card phase-end-card">
-          <div class="phase-end-emblem" aria-hidden="true">🕊️</div>
-          <h2 class="phase-end-title">Fim da Fase 1</h2>
-          <p class="phase-end-sub">
-            De Bretton Woods ao câmbio flutuante: 26 anos de decisões que moldaram a economia mundial.
-          </p>
+  <div class="parchment-card phase-end-card">
+    <div class="phase-end-emblem" aria-hidden="true">🕊️</div>
+    <h2 class="phase-end-title">${escapeHtml(fase.endTitle)}</h2>
+    <p class="phase-end-sub">
+      ${escapeHtml(fase.endSubtitle)}
+    </p>
 
           <div class="bars-summary">
             <h3 style="font-size: 17px; font-weight: 700; color: #0A1A2F; margin-bottom: 12px; border-bottom: 2px solid var(--parchment-border); padding-bottom: 6px;">
-              Balanço Final da Gestão (1944–1970)
+              ${escapeHtml(fase.endBalanceTitle)}
             </h3>
             <div class="summary-row">
               <span style="color: var(--bar-econ-base); font-weight: 700;">Estabilidade Econômica</span>
@@ -2645,7 +2731,7 @@
               Continuar
             </button>
             <div id="phase2Toast" style="display: none; background: #0A1A2F; color: var(--gold-soft); padding: 10px 20px; border-radius: 8px; border: 1px solid var(--gold-brass); font-weight: 600; font-size: 15px;">
-              A Fase 2 vem a seguir.
+              ${escapeHtml(fase.proximaAviso)}
             </div>
             <button class="btn-outline" id="btnRestartAll" type="button" style="margin-top: 10px;">
               Jogar Novamente do Início
@@ -2656,10 +2742,18 @@
 
         const btnContinue = document.getElementById('btnPhase1Continue')
         const toastEl = document.getElementById('phase2Toast')
-        btnContinue.addEventListener('click', () => {
-          toastEl.style.display = 'block'
-          btnContinue.textContent = 'A Fase 2 vem a seguir.'
-        })
+        if (isUltimaFase) {
+          // Última fase (Fase 3): o botão apenas exibe o aviso final
+          btnContinue.addEventListener('click', () => {
+            toastEl.style.display = 'block'
+            btnContinue.textContent = fase.proximaAviso
+          })
+        } else {
+          // Fases 1 e 2: avançar para a próxima fase
+          btnContinue.addEventListener('click', () => {
+            startNextPhase()
+          })
+        }
 
         document.getElementById('btnRestartAll').addEventListener('click', () => {
           resetGameProgress()
