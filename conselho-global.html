@@ -12,6 +12,7 @@
        - Acento: Dourado #C9A227
        - Botão ONU: #009EDB / Game Over: #B23A48
        - Barras: Econômica (azul), Direitos Humanos (verde), Humanitária (laranja)
+       - Fases: 1 (1944–1970), 2 (1990–2001) e 3 (1993–2015)
        ===================================================================== */
       :root {
         --bg-top: #0a1a2f;
@@ -920,6 +921,68 @@
         }
       }
 
+      /* PIADA DOS 169 OBJETIVOS (TURNO 2015 — FASE 3) */
+      .obj169-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        overflow: hidden;
+        border-radius: 14px;
+        background: #fbf8f1;
+        cursor: wait;
+      }
+
+      .obj169-tape {
+        padding: 24px 22px 48px 22px;
+        font-size: 12px;
+        line-height: 1.6;
+        color: #4a5568;
+        text-align: justify;
+      }
+
+      .obj169-tape .obj169-line {
+        margin-bottom: 3px;
+      }
+
+      .obj169-overlay.obj169-reduced {
+        cursor: default;
+      }
+
+      .odds-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 24px;
+      }
+
+      .odds-list li {
+        background: #ffffff;
+        border: 1px solid var(--parchment-border);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 16px;
+        color: #1e2a38;
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+      }
+
+      .odds-list .odds-num {
+        background: var(--onu-blue);
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 800;
+        min-width: 26px;
+        height: 26px;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transform: translateY(2px);
+      }
+
       /* RESPONSIVIDADE (PROJETOR X MOBILE) */
       @media (max-width: 768px) {
         body {
@@ -959,6 +1022,10 @@
         }
         .consequence-text {
           font-size: 17px;
+        }
+        .odds-list li {
+          font-size: 14px;
+          padding: 7px 10px;
         }
       }
     </style>
@@ -1119,12 +1186,555 @@
           emoji: '🏕️',
           caption: 'Campo de refugiados de Kutupalong',
         },
+        viena1993: {
+          url: 'https://upload.wikimedia.org/wikipedia/commons/9/93/Wien_-_Hofburgburg_-_Heldenplatz.JPG',
+          emoji: '🤝',
+          caption: 'Hofburg, Viena — sede da Conferência Mundial de Direitos Humanos (1993)',
+        },
+        indigenas2014: {
+          url: 'https://upload.wikimedia.org/wikipedia/commons/9/9d/United_Nations_Headquarters_-_New_York_City.jpg',
+          emoji: '🪶',
+          caption: 'Sede da ONU em Nova York — Conferência Mundial sobre Povos Indígenas (2014)',
+        },
+        ods2015: {
+          url: 'https://upload.wikimedia.org/wikipedia/commons/9/9d/United_Nations_Headquarters_-_New_York_City.jpg',
+          emoji: '🌍',
+          caption: 'Sede da ONU em Nova York — Cimeira de Desenvolvimento Sustentável (2015)',
+        },
+      }
+
+      /* Lista dos 17 ODS (nomes curtos oficiais, pt-BR) */
+      const ODS_LISTA = [
+        'Erradicação da pobreza',
+        'Fome zero',
+        'Saúde e bem-estar',
+        'Educação de qualidade',
+        'Igualdade de gênero',
+        'Água potável e saneamento',
+        'Energia limpa e acessível',
+        'Trabalho decente e crescimento econômico',
+        'Indústria, inovação e infraestrutura',
+        'Redução das desigualdades',
+        'Cidades e comunidades sustentáveis',
+        'Consumo e produção responsáveis',
+        'Ação contra a mudança global do clima',
+        'Vida na água',
+        'Vida terrestre',
+        'Paz, justiça e instituições eficazes',
+        'Parcerias e meios de implementação',
+      ]
+
+      /* Piada do turno 2015: rolagem GIGANTE dos "169 objetivos" */
+      function buildObj169Html() {
+        let linhas = ''
+        let meta = 1
+        for (let i = 1; i <= 17; i++) {
+          for (let m = 0; m < 10; m++) {
+            linhas +=
+              '<div class="obj169-line">' +
+              ODS_LISTA[i - 1] +
+              ' — meta ' +
+              meta +
+              ' de 169: indicadores de acompanhamento, financiamento e prestação de contas.</div>'
+            meta++
+          }
+        }
+        return linhas
+      }
+
+      function startObj169Joke() {
+        const overlayEl = document.getElementById('obj169Overlay')
+        const speechEl = document.getElementById('obj169Speech')
+        const odsSectionEl = document.getElementById('odsSection')
+        if (!overlayEl || !speechEl || !odsSectionEl) return
+
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        speechEl.style.display = 'none'
+        odsSectionEl.style.display = 'none'
+        overlayEl.style.display = 'block'
+
+        const showSpeech = () => {
+          overlayEl.style.display = 'none'
+          speechEl.style.display = 'block'
+        }
+        const showOds = () => {
+          speechEl.style.display = 'none'
+          odsSectionEl.style.display = 'block'
+        }
+
+        if (reduceMotion) {
+          // Sem movimento: mostra as etapas em sequência imediata, sem rolagem
+          overlayEl.classList.add('obj169-reduced')
+          setTimeout(showSpeech, 350)
+          setTimeout(showOds, 1200)
+          return
+        }
+
+        overlayEl.classList.add('obj169-rolling')
+        const tapeEl = document.getElementById('obj169Tape')
+        if (tapeEl) tapeEl.style.animationPlayState = 'running'
+        // FIM da rolagem (≈5s) → fala → lista dos 17 ODS
+        setTimeout(showSpeech, 5000)
+        setTimeout(showOds, 8000)
+      }
+
+      /* =========================================================================
+      ESTRUTURA DE FASES — FASE 1 (1944–1970), FASE 2 (1990–2001), FASE 3 (1993–2015)
+      Cada fase tem seus próprios turnos, título e subtítulo de encerramento.
+      ========================================================================= */
+      const FASES = [
+        {
+          id: 1,
+          titulo: 'Fase 1',
+          endTitle: 'Fim da Fase 1',
+          endSubtitle:
+            'De Bretton Woods ao câmbio flutuante: 26 anos de decisões que moldaram a economia mundial.',
+          endBalanceTitle: 'Balanço Final da Gestão (1944–1970)',
+          proximaAviso: 'A Fase 2 vem a seguir.',
+          turnos: [
+            /* preenchido abaixo, via referência */
+          ],
+        },
+        {
+          id: 2,
+          titulo: 'Fase 2',
+          endTitle: 'Fim da Fase 2',
+          endSubtitle:
+            'Dos fundos autônomos à Rodada de Doha: o Conselho negociou guerra, comércio e ajuda humanitária em um mundo globalizado.',
+          endBalanceTitle: 'Balanço da Gestão (1990–2001)',
+          proximaAviso: 'A Fase 3 vem a seguir.',
+          turnos: [],
+        },
+        {
+          id: 3,
+          titulo: 'Fase 3',
+          endTitle: 'Fim da Fase 3',
+          endSubtitle:
+            'De Viena à Agenda 2030: as conferências da ONL consolidaram os Direitos Humanos e as metas globais do século.',
+          endBalanceTitle: 'Balanço da Gestão (1993–2015)',
+          proximaAviso: 'A Fase 4 vem a seguir.',
+          turnos: [],
+        },
+      ]
+
+      /* Turnos da FASE 2 — GUERRA, FUNDOS AUTÔNOMOS E COMÉRCIO GLOBAL (1990–2001) */
+      const TURNOS_FASE_2 = [
+        // FASE 2 — TURNO 1 (1990) — tipo: "decisão" — Card "Programas e Fundos"
+        {
+          id: 7,
+          ano: 1990,
+          tipo: 'decisao',
+          titulo: 'Como negociar apoio com programas e fundos?',
+          texto:
+            'Uma nova década começa. O Conselho precisa decidir como vai negociar apoio humanitário e de desenvolvimento com os programas e fundos que atuam no campo — afinal, eles não são agências da ONU.',
+          piada:
+            '🧑‍💼 Conselheiro: Tem Unicef, Pnud, ACNUR e mais uma lista de siglas que eu confundo até no sonho. Mas rendem boas parcerias.',
+          card: {
+            id: 'programas_fundos',
+            titulo: 'Programas e Fundos',
+            sigla: 'Unicef, Pnud, ACNUR',
+            texto:
+              'Unicef (Fundo das Nações Unidas para a Infância), Pnud (Programa das Nações Unidas para o Desenvolvimento) e ACNUR (Alto Comissariado das Nações Unidas para Refugiados) NÃO devem ser confundidos com agências da ONU. Eles são programas e fundos criados pelos órgãos da ONU, mas possuem autonomia financeira e administrativa.',
+          },
+          opcoes: [
+            {
+              id: 't7_a',
+              texto: 'Cotar contribuições anuais fixas com cada programa e fundo',
+              efeitos: [4, 2, 0],
+              correta: true,
+            },
+            {
+              id: 't7_b',
+              texto: 'Negociar parcerias projeto a projeto, com metas conjuntas',
+              efeitos: [0, 4, 3],
+              correta: true,
+            },
+            {
+              id: 't7_c',
+              texto: 'Deixar que cada programa capte os próprios recursos, com autonomia total',
+              efeitos: [-2, 0, 4],
+              correta: true,
+            },
+          ],
+        },
+
+        // FASE 2 — TURNO 2 (1992) — tipo: "decisao" — CRISE (guerra civil)
+        {
+          id: 8,
+          ano: 1992,
+          tipo: 'decisao',
+          titulo: 'Guerra civil pede ajuda humanitária',
+          texto:
+            'Uma guerra civil explode em um país membro e o pedido de ajuda humanitária chega ao Conselho. Mas a ajuda não sai das suas mãos: quem atua na linha de frente são os programas e fundos autônomos, e cabe ao Conselho negociar com eles.',
+          piada:
+            '🧑‍💼 Conselheiro: A linha de frente não obedece a este plenário. Mas os fundos, esses, respondem ao e-mail.',
+          card: {
+            id: 'crise_1992',
+            titulo: 'Quem atua na linha de frente?',
+            sigla: 'Fundos autônomos em crises',
+            texto:
+              'O Conselho Global não controla diretamente quem atua na linha de frente em uma crise. O atendimento em campo é feito por programas e fundos com autonomia financeira e administrativa, como o ACNUR e o Unicef. Cabe ao Conselho negociar com eles o envio e a coordenação da ajuda humanitária.',
+          },
+          opcoes: [
+            {
+              id: 't8_a',
+              texto: 'Negociar com o ACNUR e o Unicef o envio imediato de equipes e suprimentos',
+              efeitos: [0, 2, 8],
+              correta: true,
+            },
+            {
+              id: 't8_b',
+              texto: 'Financiar a logística dos fundos, sem intervir na operação de campo',
+              efeitos: [2, 0, 6],
+              correta: true,
+            },
+            {
+              id: 't8_c',
+              texto: 'Centralizar a operação no plenário e comandar a linha de frente diretamente',
+              efeitos: [-4, -2, -3],
+              correta: true,
+            },
+          ],
+        },
+
+        // FASE 2 — TURNO 3 (1995) — tipo: "decisão" — Card "OMC"
+        {
+          id: 9,
+          ano: 1995,
+          tipo: 'decisao',
+          titulo: 'Nova casa do comércio global',
+          texto:
+            'A rodada de fundação da OMC começa. O Conselho precisa decidir como se posicionar diante da nova organização que passa a ditar as regras do comércio mundial.',
+          piada:
+            '🧑‍💼 Conselheiro: Do GATT à OMC: mesmo assunto, mas agora com sede própria em Genebra e muito mais café.',
+          card: {
+            id: 'omc',
+            titulo: 'OMC',
+            sigla: 'Organização Mundial do Comércio',
+            imagem: WIKIMEDIA_IMAGES.omcGenebra.url,
+            fallbackEmoji: WIKIMEDIA_IMAGES.omcGenebra.emoji,
+            fallbackCaption: WIKIMEDIA_IMAGES.omcGenebra.caption,
+            texto:
+              'A Organização Mundial do Comércio (OMC) não é uma agência da ONU, mas mantém estreitas relações com o Conselho de Segurança e o Ecosoc, reunindo-se duas vezes ao ano com o secretário-geral. Foi criada em 1995, em substituição ao Acordo Geral de Tarifas e Comércio (GATT), criado na Conferência de Bretton Woods. A OMC trata das regras globais de comércio entre os países e fornece um fórum para negociar acordos e resolver problemas comerciais. Essas reuniões são conhecidas como rodadas de negociação.',
+          },
+          opcoes: [
+            {
+              id: 't9_a',
+              texto: 'Participar ativamente das rodadas de negociação',
+              efeitos: [5, 2, 0],
+              correta: true,
+            },
+            {
+              id: 't9_b',
+              texto: 'Apoiar países em desenvolvimento na formulação de propostas',
+              efeitos: [2, 4, 0],
+              correta: true,
+            },
+            {
+              id: 't9_c',
+              texto: 'Observar de fora e deixar o mercado se autorregular',
+              efeitos: [-3, 0, 0],
+              correta: true,
+            },
+          ],
+        },
+
+        // FASE 2 — TURNO 4 (1999) — tipo: "rotina" — Protestos antiglobalização
+        {
+          id: 10,
+          ano: 1999,
+          tipo: 'rotina',
+          titulo: 'Protestos contra a globalização',
+          texto:
+            'As ruas das grandes cidades recebem manifestações contra a globalização. A pressão popular chega ao Conselho e exige um ajuste fino nas prioridades da governança global.',
+          opcoes: [
+            {
+              id: 't10_a',
+              texto: 'Abrir canais de diálogo com a sociedade civil',
+              efeitos: [0, 6, 0],
+              correta: true,
+            },
+            {
+              id: 't10_b',
+              texto: 'Rever regras de comércio para proteger indústrias locais',
+              efeitos: [5, 1, 0],
+              correta: true,
+            },
+            {
+              id: 't10_c',
+              texto: 'Ampliar redes de proteção social e humanitária',
+              efeitos: [0, 2, 5],
+              correta: true,
+            },
+          ],
+        },
+
+        // FASE 2 — TURNO 5 (2001) — tipo: "historica" — DECISÃO HISTÓRICA RODADA DE DOHA
+        {
+          id: 11,
+          ano: 2001,
+          tipo: 'historica',
+          titulo: 'Rodada de Doha',
+          texto:
+            'Em Doha, os países ricos e os países em desenvolvimento chegam a um impasse sobre comércio agrícola, industrial e de serviços. O Conselho precisa decidir o rumo da negociação.',
+          piada:
+            '🧑‍💼 Conselheiro: Rodada de Doha: quando "impasse" virou a palavra mais escrita das minutas.',
+          naVidaReal:
+            '📌 Na vida real: a negociação seguiu aberta, com a pauta agrícola e o SSM reconhecidos, sem acordo fechado às pressas.',
+          card: {
+            id: 'rodada_doha',
+            titulo: 'Rodada de Doha',
+            sigla: 'OMC — Rodada de Doha (2001)',
+            texto:
+              'A Rodada de Doha (2001) resultou em um impasse entre os países ricos, que queriam que os países em desenvolvimento abrissem seus mercados para bens industriais e serviços, e os países em desenvolvimento, que queriam que os países ricos abrissem seus mercados agrícolas. A União Europeia, os Estados Unidos, o Canadá e o Japão discordaram dos países em desenvolvimento (Índia, Brasil, China e África do Sul) sobre o Mecanismo Especial de Salvaguarda (SSM). Esse mecanismo permitiria que os países em desenvolvimento elevassem temporariamente suas tarifas para lidar com surtos de importação ou queda de preços de commodities agrominerais.',
+          },
+          opcoes: [
+            {
+              id: 't11_a',
+              texto:
+                'Manter a negociação viva, reconhecendo a pauta agrícola e o SSM como legítimos, sem fechar acordo às pressas',
+              efeitos: [6, 4, 0],
+              correta: true,
+            },
+            {
+              id: 't11_b',
+              texto:
+                'Ceder à pressão dos países ricos e abrir indústria e serviços sem contrapartida agrícola',
+              efeitos: [-6, -4, 0],
+              correta: false,
+              consequencia: 'os países em desenvolvimento perdem proteção e a rodada trava de vez',
+            },
+            {
+              id: 't11_c',
+              texto: 'Abandonar a OMC e voltar ao GATT',
+              efeitos: [-5, -2, 0],
+              correta: false,
+              consequencia:
+                'o fórum global de comércio se esvazia e as disputas voltam à lei do mais forte',
+            },
+          ],
+        },
+      ]
+
+      /* Turnos da FASE 3 — CONFERÊNCIAS E A AGENDA 2030 (1993–2015)
+      IMPORTANTE: sem cronômetro e sem decisão por tempo nesta fase —
+      todas as escolhas seguem o padrão bloqueante das demais. */
+      const TURNOS_FASE_3 = [
+        // FASE 3 — TURNO 1 (1993) — tipo: "decisão" — Card "Conferência de Viena"
+        {
+          id: 12,
+          ano: 1993,
+          tipo: 'decisao',
+          titulo: 'Conferência de Viena',
+          texto:
+            'A Conferência Mundial sobre Direitos Humanos se reúne em Viena. O Conselho precisa decidir como conduzir a pauta de direitos humanos para as próximas décadas.',
+          piada:
+            '🧑‍💼 Conselheiro: Viena é famosa por música e por decisões históricas. A pauta de hoje é só a segunda opção.',
+          card: {
+            id: 'conferencia_viena',
+            titulo: 'Conferência de Viena',
+            sigla: 'Conferência Mundial sobre Direitos Humanos (1993)',
+            texto:
+              'A Conferência Mundial sobre Direitos Humanos, realizada em Viena em 1993, foi um dos encontros organizados pela ONU para discutir temas de grande importância para os Direitos Humanos. Desde sua criação, a ONU organizou diversos tipos de conferências com esse objetivo.',
+          },
+          opcoes: [
+            {
+              id: 't12_a',
+              texto: 'Firmar um compromisso global de proteção aos Direitos Humanos',
+              efeitos: [0, 7, 0],
+              correta: true,
+            },
+            {
+              id: 't12_b',
+              texto: 'Priorizar relatórios anuais de monitoramento',
+              efeitos: [2, 4, 0],
+              correta: true,
+            },
+            {
+              id: 't12_c',
+              texto: 'Deixar cada país definir sua própria política de direitos humanos',
+              efeitos: [0, -3, 0],
+              correta: true,
+            },
+          ],
+        },
+
+        // FASE 3 — TURNO 2 (1995) — tipo: "decisão" — Card "Conferências sobre as Mulheres"
+        {
+          id: 13,
+          ano: 1995,
+          tipo: 'decisao',
+          titulo: 'Conferências sobre as Mulheres',
+          texto:
+            'A pauta das mulheres chega ao centro das conferências da ONU. O Conselho precisa decidir como apoiar esse esforço global.',
+          piada:
+            '🧑‍💼 Conselheiro: Quatro conferências depois, o tema finalmente ganhou o plenário inteiro — e a pauta definitiva.',
+          card: {
+            id: 'conferencias_mulheres',
+            titulo: 'Conferências sobre as Mulheres',
+            sigla: 'Quatro Conferências Mundiais sobre as Mulheres',
+            texto:
+              'As Quatro Conferências Mundiais sobre as Mulheres foram encontros organizados pela ONU para discutir direitos e condições de vida das mulheres em escala global, parte do esforço da organização em torno dos Direitos Humanos.',
+          },
+          opcoes: [
+            {
+              id: 't13_a',
+              texto: 'Apoiar políticas públicas de igualdade de gênero',
+              efeitos: [0, 7, 0],
+              correta: true,
+            },
+            {
+              id: 't13_b',
+              texto: 'Investir em educação e saúde das mulheres',
+              efeitos: [2, 5, 0],
+              correta: true,
+            },
+            {
+              id: 't13_c',
+              texto: 'Tratar o tema como assunto interno de cada país',
+              efeitos: [0, -3, 0],
+              correta: true,
+            },
+          ],
+        },
+
+        // FASE 3 — TURNO 3 (2007) — tipo: "rotina" — Pressão por metas mensuráveis
+        {
+          id: 14,
+          ano: 2007,
+          tipo: 'rotina',
+          titulo: 'Pressão por metas mensuráveis',
+          texto:
+            'Relatórios exigem metas claras e mensuráveis para os compromissos globais. O Conselho ajusta o rumo da governança.',
+          opcoes: [
+            {
+              id: 't14_a',
+              texto: 'Adotar indicadores quantitativos de acompanhamento',
+              efeitos: [4, 3, 0],
+              correta: true,
+            },
+            {
+              id: 't14_b',
+              texto: 'Criar painéis de auditoria internacional',
+              efeitos: [2, 2, 0],
+              correta: true,
+            },
+            {
+              id: 't14_c',
+              texto: 'Ampliar financiamento de programas sociais',
+              efeitos: [0, 3, 3],
+              correta: true,
+            },
+          ],
+        },
+
+        // FASE 3 — TURNO 4 (2014) — tipo: "decisão" — Card "Povos Indígenas"
+        {
+          id: 15,
+          ano: 2014,
+          tipo: 'decisao',
+          titulo: 'Povos Indígenas',
+          texto:
+            'Nova York recebe a Conferência Mundial sobre Povos Indígenas. O Conselho precisa definir como apoiar essa pauta.',
+          piada:
+            '🧑‍💼 Conselheiro: A sala nunca esteve tão cheia de sabedoria ancestral — e de tradutores simultâneos.',
+          card: {
+            id: 'povos_indigenas',
+            titulo: 'Povos Indígenas',
+            sigla: 'Conferência Mundial sobre Povos Indígenas (2014)',
+            imagem: WIKIMEDIA_IMAGES.indigenas2014.url,
+            fallbackEmoji: WIKIMEDIA_IMAGES.indigenas2014.emoji,
+            fallbackCaption: WIKIMEDIA_IMAGES.indigenas2014.caption,
+            texto:
+              'A Conferência Mundial sobre Povos Indígenas foi realizada em Nova York, em 2014, e integra o conjunto de conferências da ONU voltadas à defesa dos Direitos Humanos.',
+          },
+          opcoes: [
+            {
+              id: 't15_a',
+              texto: 'Garantir participação indígena nos órgãos de decisão',
+              efeitos: [0, 7, 0],
+              correta: true,
+            },
+            {
+              id: 't15_b',
+              texto: 'Proteger territórios e modos de vida tradicionais',
+              efeitos: [0, 5, 3],
+              correta: true,
+            },
+            {
+              id: 't15_c',
+              texto: 'Apenas documentar as reuniões, sem compromisso concreto',
+              efeitos: [0, -3, 0],
+              correta: true,
+            },
+          ],
+        },
+
+        // FASE 3 — TURNO 5 (2015) — tipo: "historica" — DECISÃO HISTÓRICA AGENDA 2030
+        {
+          id: 16,
+          ano: 2015,
+          tipo: 'historica',
+          titulo: 'Cimeira de Nova York / Agenda 2030',
+          texto:
+            'A Cimeira das Nações Unidas para um Desenvolvimento Sustentável se reúne em Nova York para definir a agenda global das próximas décadas.',
+          piada:
+            '🧑‍💼 Conselheiro: 169 metas, 17 objetivos, 1 café. A matemática do Conselho é implacável.',
+          naVidaReal: '📌 Na vida real: a Agenda 2030 foi adotada com os 17 ODS e as 169 metas.',
+          card: {
+            id: 'agenda_2030',
+            titulo: 'Cimeira de Nova York / Agenda 2030',
+            sigla: 'ODS e 169 metas até 2030',
+            imagem: WIKIMEDIA_IMAGES.ods2015.url,
+            fallbackEmoji: WIKIMEDIA_IMAGES.ods2015.emoji,
+            fallbackCaption: WIKIMEDIA_IMAGES.ods2015.caption,
+            texto:
+              'A Cimeira das Nações Unidas para um Desenvolvimento Sustentável, realizada em Nova York em 2015, definiu os 17 Objetivos de Desenvolvimento Sustentável (ODS) e 169 metas concretas que todos os países devem atingir até 2030. Esse conjunto é conhecido como Agenda 2030.',
+          },
+          opcoes: [
+            {
+              id: 't16_a',
+              texto: 'Adotar a Agenda 2030 com os 17 ODS e as 169 metas',
+              efeitos: [5, 8, 2],
+              correta: true,
+            },
+            {
+              id: 't16_b',
+              texto: 'Adotar só metas econômicas, sem os ODS sociais e ambientais',
+              efeitos: [6, -6, 0],
+              correta: false,
+              consequencia:
+                'os indicadores sociais e ambientais ficam sem referência e a barra de Direitos Humanos cai',
+            },
+            {
+              id: 't16_c',
+              texto: 'Deixar cada país definir suas próprias metas, sem acordo comum',
+              efeitos: [0, -4, -2],
+              correta: false,
+              consequencia: 'sem metas comuns não há como comparar progresso e a agenda se dilui',
+            },
+          ],
+        },
+      ]
+      // Vincular os turnos às fases
+      FASES[0].turnos = TURNOS.slice()
+      FASES[1].turnos = TURNOS_FASE_2.slice()
+      FASES[2].turnos = TURNOS_FASE_3.slice()
+
+      /* Junta todos os turnos (motor continua iterando um único array) */
+      const TODOS_TURNOS = [...TURNOS, ...TURNOS_FASE_2, ...TURNOS_FASE_3]
+
+      function getPhaseOfTurn(turnIndex) {
+        if (turnIndex < TURNOS.length) return 1
+        if (turnIndex < TURNOS.length + TURNOS_FASE_2.length) return 2
+        return 3
       }
 
       /* =========================================================================
        DADOS DO JOGO — ARRAY DE TURNOS (FASE 1: 1944–1970)
        Efeitos: [Estabilidade Econômica, Direitos Humanos & Desenv., Capacidade Humanitária]
        Textos EXATOS conforme especificação do projeto.
+       (Fases 2 e 3 adicionadas abaixo, em arrays separados e comentados)
        ========================================================================= */
       const TURNOS = [
         // TURNO 1 (1944) — tipo: "decisão"
@@ -1379,6 +1989,10 @@
         feedbackNotice: null,
         // Estado de bloqueio do card no turno corrente
         cardOpenBlocking: false,
+        // Fase corrente (1, 2 ou 3) e flag da tela de fim de fase
+        faseAtual: 1,
+        // Piada dos 169 objetivos: etapa atual ('rodando' | 'fala' | 'lista')
+        obj169Stage: 'rodando',
       }
 
       let state = JSON.parse(JSON.stringify(INITIAL_STATE))
@@ -1703,8 +2317,9 @@
           // Checar se o novo turno tem card inédito
           checkAndOpenNewTurnCard()
         } else {
-          // Fim da Fase 1
+          // Fim de fase (1, 2 ou 3)
           state.view = 'phase_end'
+          state.faseAtual = getPhaseOfTurn(state.turnIndex)
           saveState()
           render()
         }
@@ -1744,10 +2359,38 @@
 
         saveState()
         render()
+        // Reabrir o card do turno (já desbloqueado) sem bloquear
+        const turnoAtual = TODOS_TURNOS[state.turnIndex]
+        if (turnoAtual && turnoAtual.card) {
+          openEncyclopediaCard(turnoAtual.card, false)
+        }
+      }
+
+      /* =========================================================================
+      CONTROLE DE FASES (TRANSIÇÃO ENTRE FASES 1 → 2 → 3)
+      ========================================================================= */
+      function startNextPhase() {
+        const faseConcluida = state.faseAtual
+        const proximaFase = faseConcluida + 1
+        if (proximaFase > FASES.length) return
+
+        // Avançar o índice para o primeiro turno da nova fase
+        let novoIndice = 0
+        for (let i = 0; i < proximaFase - 1; i++) {
+          novoIndice += FASES[i].turnos.length
+        }
+        state.turnIndex = novoIndice
+        state.faseAtual = proximaFase
+        state.view = 'turn'
+        state.feedbackNotice = null
+        saveState()
+        render()
+        // Checar card inédito do primeiro turno da nova fase
+        checkAndOpenNewTurnCard()
       }
 
       function checkAndOpenNewTurnCard() {
-        const currentTurn = TURNOS[state.turnIndex]
+        const currentTurn = TODOS_TURNOS[state.turnIndex]
         if (currentTurn && currentTurn.card) {
           const isAlreadyUnlocked = state.unlockedCardIds.includes(currentTurn.card.id)
           if (!isAlreadyUnlocked) {
