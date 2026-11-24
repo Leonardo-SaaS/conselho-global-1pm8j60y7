@@ -2610,13 +2610,18 @@
           ${
             currentTurn.piada
               ? `
-            <div class="counselor-quote" ${
-              isTurn169 && state.obj169Stage !== 'concluido'
-                ? 'id="obj169Speech" style="display: none"'
-                : ''
-            }>
-              ${escapeHtml(currentTurn.piada)}
-            </div>
+            <div class="counselor-quote">${escapeHtml(currentTurn.piada)}</div>
+          `
+              : ''
+          }
+
+          ${
+            isTurn169 && state.obj169Stage !== 'concluido'
+              ? `
+          <!-- FALA DO JOGADOR APÓS A ROLAGEM DOS 169 OBJETIVOS -->
+          <div class="counselor-quote" id="obj169Speech" style="display: none">
+            Tá, tá. Em resumo: 17 objetivos.
+          </div>
           `
               : ''
           }

@@ -1,283 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { FASES } from './conselho/dados-base'
+import type { CardData, TurnoData } from './conselho/dados-base'
+import { Obj169Joke, type Obj169Stage } from './conselho/Obj169Joke'
 
-// Constantes de Imagens do Wikimedia Commons com fallbacks
-export const WIKIMEDIA_IMAGES = {
-  brettonWoods: {
-    url: 'https://upload.wikimedia.org/wikipedia/commons/3/32/Mount_Washington_Hotel_Resort_Bretton_Woods_New_Hampshire.JPG',
-    emoji: '🏨',
-    caption: 'Hotel Mount Washington — Bretton Woods (1944)',
-  },
-  omcGenebra: {
-    url: 'https://upload.wikimedia.org/wikipedia/commons/6/6c/Cwr_aerial_2001.jpg',
-    emoji: '🏛️',
-    caption: 'Centre William Rappard — Sede da OMC em Genebra',
-  },
-  kutupalong: {
-    url: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Kutupalong_rohingya_camp_view.jpg',
-    emoji: '🏕️',
-    caption: 'Campo de refugiados de Kutupalong',
-  },
-}
-
-interface CardData {
-  id: string
-  titulo: string
-  sigla?: string
-  imagem?: string
-  fallbackEmoji?: string
-  fallbackCaption?: string
-  texto: string
-}
-
-interface OpcaoData {
-  id: string
-  texto: string
-  efeitos?: [number, number, number]
-  correta?: boolean
-  consequencia?: string
-}
-
-interface TurnoData {
-  id: number
-  ano: number
-  tipo: 'decisao' | 'historica' | 'rotina'
-  titulo: string
-  texto: string
-  piada?: string
-  naVidaReal?: string
-  card?: CardData
-  opcoes: OpcaoData[]
-}
-
-export const TURNOS: TurnoData[] = [
-  // TURNO 1 (1944) — tipo: "decisão"
-  {
-    id: 1,
-    ano: 1944,
-    tipo: 'decisao',
-    titulo: 'Como organizar o orçamento das agências?',
-    texto:
-      'A guerra na Europa ainda não acabou, mas os países aliados já desenham o mundo de depois dela. A primeira grande tarefa do Conselho: definir como as agências do Sistema das Nações Unidas serão financiadas.',
-    piada:
-      '🧑‍💼 Conselheiro: O anexo tem 400 páginas e ninguém leu. Como sempre, decidimos pelo clima da sala.',
-    card: {
-      id: 'onu_sistema',
-      titulo: 'Sistema das Nações Unidas',
-      sigla: 'ONU / Sistema ONU',
-      texto:
-        'A ONU faz parte do Sistema das Nações Unidas, que reúne 15 agências especializadas, 7 organizações relacionadas e diversos fundos e programas. Algumas agências já existiam antes da Primeira Guerra Mundial. Elas são coordenadas pelo Ecosoc e têm orçamento próprio, também por meio de contribuição. O Sistema existe para promover os direitos humanos, combater as mudanças climáticas e reduzir a desigualdade entre os povos.',
-    },
-    opcoes: [
-      {
-        id: 't1_a',
-        texto: 'Contribuições obrigatórias, proporcionais à economia de cada país',
-        efeitos: [5, 3, 0],
-        correta: true,
-      },
-      {
-        id: 't1_b',
-        texto: 'Orçamento igual para todos os países, grandes ou pequenos',
-        efeitos: [0, 5, 0],
-        correta: true,
-      },
-      {
-        id: 't1_c',
-        texto: 'Depender de doações voluntárias dos países mais ricos',
-        efeitos: [-3, 0, 5],
-        correta: true,
-      },
-    ],
-  },
-
-  // TURNO 2 (1944) — tipo: "decisão"
-  {
-    id: 2,
-    ano: 1944,
-    tipo: 'decisao',
-    titulo: 'Qual área priorizar neste primeiro momento?',
-    texto:
-      'O Sistema das Nações Unidas está de pé. Agora o Conselho precisa escolher onde concentrar os primeiros esforços das agências.',
-    piada:
-      '🧑‍💼 Conselheiro: O café do plenário acabou de novo. Se isso continuar, teremos nossa primeira crise diplomática interna.',
-    card: {
-      id: 'agencias_dh',
-      titulo: 'Agências de Direitos Humanos',
-      sigla: 'FAO, OMS, Unesco, OIT',
-      texto:
-        'Quatro agências têm grande impacto na defesa dos Direitos Humanos no dia a dia: a FAO (Organização das Nações Unidas para a Alimentação e Cultura), a OMS (Organização Mundial de Saúde), a Unesco (Organização das Nações Unidas para a Educação, Ciência e Cultura) e a OIT (Organização Internacional do Trabalho).',
-    },
-    opcoes: [
-      {
-        id: 't2_a',
-        texto: 'FAO — combate à fome e segurança alimentar',
-        efeitos: [0, 4, 6],
-        correta: true,
-      },
-      {
-        id: 't2_b',
-        texto: 'OMS — campanhas de saúde e vacinação',
-        efeitos: [0, 6, 4],
-        correta: true,
-      },
-      {
-        id: 't2_c',
-        texto: 'Unesco e OIT — educação, ciência e trabalho digno',
-        efeitos: [3, 6, 0],
-        correta: true,
-      },
-    ],
-  },
-
-  // TURNO 3 (1944) — tipo: "historica" — DECISÃO HISTÓRICA BRETTON WOODS
-  {
-    id: 3,
-    ano: 1944,
-    tipo: 'historica',
-    titulo: 'Conferência de Bretton Woods',
-    texto:
-      'Representantes de 44 nações aliadas reúnem-se em New Hampshire para desenhar a ordem econômica global do pós-guerra e evitar os erros que levaram à Grande Depressão.',
-    naVidaReal: '📌 Na vida real: os países criaram o FMI e o Bird e adotaram o padrão dólar/ouro.',
-    card: {
-      id: 'bretton_woods',
-      titulo: 'Conferência de Bretton Woods',
-      sigla: 'FMI & BIRD (Banco Mundial)',
-      imagem: WIKIMEDIA_IMAGES.brettonWoods.url,
-      fallbackEmoji: WIKIMEDIA_IMAGES.brettonWoods.emoji,
-      fallbackCaption: WIKIMEDIA_IMAGES.brettonWoods.caption,
-      texto:
-        'A Conferência de Bretton Woods (1944) foi uma conferência monetária e financeira das Nações Unidas, realizada na cidade de mesmo nome no nordeste dos Estados Unidos. Ela criou as regras para o sistema monetário internacional do pós-Segunda Guerra Mundial, entre elas a adoção do padrão dólar/ouro. O principal objetivo era garantir estabilidade econômica, fundamental para a paz. As instituições criadas passariam a fornecer empréstimos para países com dificuldades financeiras.',
-    },
-    opcoes: [
-      {
-        id: 't3_a',
-        texto:
-          'Criar o FMI e o Bird (Banco Mundial) e adotar o padrão dólar/ouro, com empréstimos a países em dificuldade e assistência financeira para reconstruir nações devastadas pela guerra',
-        efeitos: [10, 5, 5],
-        correta: true,
-      },
-      {
-        id: 't3_b',
-        texto: 'Manter cada país com sua própria moeda, sem instituição comum de empréstimo',
-        efeitos: [-10, 0, 0],
-        correta: false,
-        consequencia:
-          'Sem credor comum, as moedas se desvalorizam em cascata e a reconstrução trava.',
-      },
-      {
-        id: 't3_c',
-        texto: 'Criar um banco apenas europeu, sem alcance global',
-        efeitos: [-5, 0, -5],
-        correta: false,
-        consequencia:
-          'Países fora da Europa ficam sem financiamento e a estabilidade não se globaliza.',
-      },
-    ],
-  },
-
-  // TURNO 4 (1950) — tipo: "rotina"
-  {
-    id: 4,
-    ano: 1950,
-    tipo: 'rotina',
-    titulo: 'A reconstrução em curso',
-    texto:
-      'As decisões do Conselho começam a surtir efeito. Fábricas reabrem na Europa, portos voltam a operar e os primeiros acordos comerciais são assinados. Resta ajustar o rumo para o próximo semestre.',
-    opcoes: [
-      {
-        id: 't4_a',
-        texto: 'Reforçar acordos de comércio internacional',
-        efeitos: [6, 0, 0],
-        correta: true,
-      },
-      {
-        id: 't4_b',
-        texto: 'Ampliar programas sociais de reconstrução',
-        efeitos: [0, 6, 0],
-        correta: true,
-      },
-      {
-        id: 't4_c',
-        texto: 'Formar estoques de suprimentos humanitários',
-        efeitos: [0, 0, 6],
-        correta: true,
-      },
-    ],
-  },
-
-  // TURNO 5 (1960) — tipo: "rotina"
-  {
-    id: 5,
-    ano: 1960,
-    tipo: 'rotina',
-    titulo: 'Descolonização',
-    texto:
-      'Uma nova onda de países independentes chega à Assembleia Geral. As novas nações pedem investimento em desenvolvimento, não apenas empréstimos de emergência. O Conselho precisa reequilibrar as prioridades.',
-    opcoes: [
-      {
-        id: 't5_a',
-        texto: 'Créditos para industrialização das novas nações',
-        efeitos: [6, 2, 0],
-        correta: true,
-      },
-      {
-        id: 't5_b',
-        texto: 'Educação e saúde básica em larga escala',
-        efeitos: [0, 6, 2],
-        correta: true,
-      },
-      {
-        id: 't5_c',
-        texto: 'Rede humanitária de resposta rápida',
-        efeitos: [0, 0, 6],
-        correta: true,
-      },
-    ],
-  },
-
-  // TURNO 6 (1970) — tipo: "historica" — DECISÃO HISTÓRICA FIM DO CÂMBIO FIXO
-  {
-    id: 6,
-    ano: 1970,
-    tipo: 'historica',
-    titulo: 'Fim do câmbio fixo',
-    texto:
-      'A pressão sobre o padrão dólar/ouro atinge níveis insustentáveis. Os principais bancos centrais não conseguem mais sustentar a paridade fixa e o Conselho debate a transição do sistema.',
-    piada:
-      '🧑‍💼 Conselheiro: Se mais um país pedir reunião extraordinária, eu mesmo peço asilo à Unesco.',
-    naVidaReal: '📌 Na vida real: na década de 1970, o mundo adotou o câmbio flutuante.',
-    card: {
-      id: 'fim_cambio_fixo',
-      titulo: 'Fim do câmbio fixo',
-      sigla: 'Câmbio Flutuante',
-      texto:
-        'O regime de câmbio fixo durou quase 30 anos. Na década de 1970, adotou-se o câmbio flutuante, utilizado desde então. Câmbio flutuante é um sistema no qual a taxa de câmbio de uma moeda é definida pela oferta e pela demanda de moeda estrangeira no mercado, que variam em função da inflação, da taxa de juros e do crescimento econômico de cada país.',
-    },
-    opcoes: [
-      {
-        id: 't6_a',
-        texto: 'Adotar o câmbio flutuante',
-        efeitos: [10, 0, 0],
-        correta: true,
-      },
-      {
-        id: 't6_b',
-        texto: 'Insistir no câmbio fixo',
-        efeitos: [-10, 0, 0],
-        correta: false,
-        consequencia: 'As reservas se esgotam e a crise de inflação e juros se aprofunda.',
-      },
-      {
-        id: 't6_c',
-        texto: 'Congelar todas as moedas ao dólar sem ajuste',
-        efeitos: [-8, -2, 0],
-        correta: false,
-        consequencia: 'O desequilíbrio comercial explode.',
-      },
-    ],
-  },
-]
-
-const STORAGE_KEY = 'conselho_global_save_v1'
+const STORAGE_KEY = 'conselho_global_save_v2'
 
 function clampBar(val: number) {
   return Math.max(0, Math.min(100, Math.round(val)))
@@ -295,109 +21,124 @@ function getBarColor(type: 'econ' | 'dir' | 'hum', val: number) {
   return '#E8871E'
 }
 
+type View = 'intro' | 'turn' | 'consequence' | 'phase_end'
+
+interface Snapshot {
+  faseIdx: number
+  turnIdx: number
+  bars: { econ: number; dir: number; hum: number }
+}
+
+interface PendingConsequence {
+  turnoId: number
+  opcaoId: string
+  textoConsequencia: string
+}
+
 export default function Index() {
-  const [view, setView] = useState<'intro' | 'turn' | 'consequence' | 'phase_end'>('intro')
-  const [turnIndex, setTurnIndex] = useState(0)
+  const [view, setView] = useState<View>('intro')
+  const [faseIdx, setFaseIdx] = useState(0)
+  const [turnIdx, setTurnIdx] = useState(0)
   const [bars, setBars] = useState({ econ: 50, dir: 50, hum: 50 })
   const [unlockedCardIds, setUnlockedCardIds] = useState<string[]>([])
-  const [preWrongSnapshot, setPreWrongSnapshot] = useState<{
-    turnIndex: number
-    bars: { econ: number; dir: number; hum: number }
-  } | null>(null)
+  const [preWrongSnapshot, setPreWrongSnapshot] = useState<Snapshot | null>(null)
   const [disabledOptionIds, setDisabledOptionIds] = useState<Record<number, string[]>>({})
-  const [pendingConsequence, setPendingConsequence] = useState<{
-    turnId: number
-    opcaoId: string
-    textoConsequencia: string
-    naVidaReal: string
-  } | null>(null)
+  const [pendingConsequence, setPendingConsequence] = useState<PendingConsequence | null>(null)
   const [feedbackNotice, setFeedbackNotice] = useState<string | null>(null)
-
-  // Modais
   const [activeCardModal, setActiveCardModal] = useState<CardData | null>(null)
   const [isCardModalBlocking, setIsCardModalBlocking] = useState(false)
   const [isArchiveOpen, setIsArchiveOpen] = useState(false)
   const [imageFailed, setImageFailed] = useState(false)
-  const [phase2ToastVisible, setPhase2ToastVisible] = useState(false)
+  const [obj169Stage, setObj169Stage] = useState<Obj169Stage>('aguardando')
+  const obj169TimerRef = useRef<number | null>(null)
 
-  // Carregar do localStorage na montagem
+  const fase = FASES[faseIdx]
+  const currentTurn: TurnoData | undefined = fase.turnos[turnIdx]
+  const isTurn169 = currentTurn?.card?.id === 'agenda_2030'
+  const disabledForThisTurn = (currentTurn && disabledOptionIds[currentTurn.id]) || []
+  const hasDisabledWrongOptions = disabledForThisTurn.length > 0
+
+  // ── Persistência em localStorage ──────────────────────────────────────────
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        if (parsed && typeof parsed.turnIndex === 'number') {
-          if (parsed.view) setView(parsed.view)
-          setTurnIndex(parsed.turnIndex)
-          if (parsed.bars) setBars(parsed.bars)
-          if (parsed.unlockedCardIds) setUnlockedCardIds(parsed.unlockedCardIds)
-          if (parsed.disabledOptionIds) setDisabledOptionIds(parsed.disabledOptionIds)
-          if (parsed.preWrongSnapshot) setPreWrongSnapshot(parsed.preWrongSnapshot)
-          if (parsed.pendingConsequence) setPendingConsequence(parsed.pendingConsequence)
-          if (parsed.feedbackNotice) setFeedbackNotice(parsed.feedbackNotice)
-        }
-      }
+      if (!saved) return
+      const parsed = JSON.parse(saved)
+      if (!parsed || typeof parsed !== 'object') return
+      if (parsed.view) setView(parsed.view)
+      if (typeof parsed.faseIdx === 'number') setFaseIdx(parsed.faseIdx)
+      if (typeof parsed.turnIdx === 'number') setTurnIdx(parsed.turnIdx)
+      if (parsed.bars) setBars(parsed.bars)
+      if (Array.isArray(parsed.unlockedCardIds)) setUnlockedCardIds(parsed.unlockedCardIds)
+      if (parsed.disabledOptionIds) setDisabledOptionIds(parsed.disabledOptionIds)
+      if (parsed.preWrongSnapshot) setPreWrongSnapshot(parsed.preWrongSnapshot)
+      if (parsed.obj169Stage) setObj169Stage(parsed.obj169Stage)
     } catch {
-      // Ignora falhas de localStorage
+      // ignora falhas de localStorage
     }
   }, [])
 
-  // Salvar no localStorage quando o estado mudar
   useEffect(() => {
     try {
-      const payload = {
-        view,
-        turnIndex,
-        bars,
-        unlockedCardIds,
-        disabledOptionIds,
-        preWrongSnapshot,
-        pendingConsequence,
-        feedbackNotice,
-      }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          view,
+          faseIdx,
+          turnIdx,
+          bars,
+          unlockedCardIds,
+          disabledOptionIds,
+          preWrongSnapshot,
+          obj169Stage,
+        }),
+      )
     } catch {
-      // Ignora
+      // ignora
     }
   }, [
     view,
-    turnIndex,
+    faseIdx,
+    turnIdx,
     bars,
     unlockedCardIds,
     disabledOptionIds,
     preWrongSnapshot,
-    pendingConsequence,
-    feedbackNotice,
+    obj169Stage,
   ])
 
-  // Checar card inédito ao entrar em um turno
-  const checkAndOpenTurnCard = (tIndex: number, currentUnlocked: string[]) => {
-    const curTurn = TURNOS[tIndex]
-    if (curTurn && curTurn.card) {
-      if (!currentUnlocked.includes(curTurn.card.id)) {
-        // Inédito: abre bloqueante
-        const nextUnlocked = [...currentUnlocked, curTurn.card.id]
-        setUnlockedCardIds(nextUnlocked)
-        setImageFailed(false)
-        setActiveCardModal(curTurn.card)
-        setIsCardModalBlocking(true)
-      }
+  // Limpa o timer da piada dos 169 ao desmontar
+  useEffect(() => {
+    return () => {
+      if (obj169TimerRef.current) window.clearTimeout(obj169TimerRef.current)
+    }
+  }, [])
+
+  // ── Ações ─────────────────────────────────────────────────────────────────
+  const checkAndOpenTurnCard = (fIdx: number, tIdx: number, currentUnlocked: string[]) => {
+    const turno = FASES[fIdx].turnos[tIdx]
+    if (turno && turno.card && !currentUnlocked.includes(turno.card.id)) {
+      setUnlockedCardIds([...currentUnlocked, turno.card.id])
+      setImageFailed(false)
+      setActiveCardModal(turno.card)
+      setIsCardModalBlocking(true)
     }
   }
 
   const handleStartGame = () => {
     setView('turn')
-    checkAndOpenTurnCard(turnIndex, unlockedCardIds)
+    checkAndOpenTurnCard(faseIdx, turnIdx, unlockedCardIds)
   }
 
   const handleResetGame = () => {
     try {
       localStorage.removeItem(STORAGE_KEY)
     } catch {
-      // Ignora
+      // ignora
     }
     setView('intro')
-    setTurnIndex(0)
+    setFaseIdx(0)
+    setTurnIdx(0)
     setBars({ econ: 50, dir: 50, hum: 50 })
     setUnlockedCardIds([])
     setPreWrongSnapshot(null)
@@ -407,61 +148,50 @@ export default function Index() {
     setActiveCardModal(null)
     setIsCardModalBlocking(false)
     setIsArchiveOpen(false)
-    setPhase2ToastVisible(false)
+    setObj169Stage('aguardando')
   }
 
   const handleChoiceClick = (opcaoIndex: number) => {
-    const currentTurn = TURNOS[turnIndex]
     if (!currentTurn) return
-    const chosenOption = currentTurn.opcoes[opcaoIndex]
-    if (!chosenOption) return
+    const chosen = currentTurn.opcoes[opcaoIndex]
+    if (!chosen) return
 
-    if (currentTurn.tipo === 'historica' && chosenOption.correta === false) {
-      // Guardar snapshot anterior
-      setPreWrongSnapshot({
-        turnIndex,
-        bars: { ...bars },
-      })
-
+    if (currentTurn.tipo === 'historica' && chosen.correta === false) {
+      setPreWrongSnapshot({ faseIdx, turnIdx, bars: { ...bars } })
       setPendingConsequence({
-        turnId: currentTurn.id,
-        opcaoId: chosenOption.id,
+        turnoId: currentTurn.id,
+        opcaoId: chosen.id,
         textoConsequencia:
-          chosenOption.consequencia || 'A decisão resultou em instabilidade global severa.',
-        naVidaReal: currentTurn.naVidaReal || '',
+          chosen.consequencia || 'A decisão resultou em instabilidade global severa.',
       })
-
       setFeedbackNotice('A proposta avança...')
-
-      // Aplica temporariamente
-      if (chosenOption.efeitos) {
+      if (chosen.efeitos) {
         setBars({
-          econ: clampBar(bars.econ + chosenOption.efeitos[0]),
-          dir: clampBar(bars.dir + chosenOption.efeitos[1]),
-          hum: clampBar(bars.hum + chosenOption.efeitos[2]),
+          econ: clampBar(bars.econ + chosen.efeitos[0]),
+          dir: clampBar(bars.dir + chosen.efeitos[1]),
+          hum: clampBar(bars.hum + chosen.efeitos[2]),
         })
       }
-
       setView('consequence')
       return
     }
 
     // Escolha correta ou rotina
-    if (chosenOption.efeitos) {
+    if (chosen.efeitos) {
       setBars({
-        econ: clampBar(bars.econ + chosenOption.efeitos[0]),
-        dir: clampBar(bars.dir + chosenOption.efeitos[1]),
-        hum: clampBar(bars.hum + chosenOption.efeitos[2]),
+        econ: clampBar(bars.econ + chosen.efeitos[0]),
+        dir: clampBar(bars.dir + chosen.efeitos[1]),
+        hum: clampBar(bars.hum + chosen.efeitos[2]),
       })
     }
-
     setFeedbackNotice(null)
 
-    if (turnIndex + 1 < TURNOS.length) {
-      const nextTurnIdx = turnIndex + 1
-      setTurnIndex(nextTurnIdx)
+    if (turnIdx + 1 < fase.turnos.length) {
+      const nextTurnIdx = turnIdx + 1
+      setTurnIdx(nextTurnIdx)
+      setObj169Stage('aguardando')
       setView('turn')
-      checkAndOpenTurnCard(nextTurnIdx, unlockedCardIds)
+      checkAndOpenTurnCard(faseIdx, nextTurnIdx, unlockedCardIds)
     } else {
       setView('phase_end')
     }
@@ -469,23 +199,21 @@ export default function Index() {
 
   const handleGameOverBack = () => {
     if (!pendingConsequence) return
-
     if (preWrongSnapshot) {
       setBars({ ...preWrongSnapshot.bars })
-      setTurnIndex(preWrongSnapshot.turnIndex)
+      setFaseIdx(preWrongSnapshot.faseIdx)
+      setTurnIdx(preWrongSnapshot.turnIdx)
     }
-
     setDisabledOptionIds((prev) => {
-      const currentList = prev[pendingConsequence.turnId] || []
+      const currentList = prev[pendingConsequence.turnoId] || []
       if (!currentList.includes(pendingConsequence.opcaoId)) {
         return {
           ...prev,
-          [pendingConsequence.turnId]: [...currentList, pendingConsequence.opcaoId],
+          [pendingConsequence.turnoId]: [...currentList, pendingConsequence.opcaoId],
         }
       }
       return prev
     })
-
     setPendingConsequence(null)
     setFeedbackNotice(null)
     setPreWrongSnapshot(null)
@@ -495,21 +223,40 @@ export default function Index() {
   const handleCloseCardModal = () => {
     setActiveCardModal(null)
     setIsCardModalBlocking(false)
+    // Card da Agenda 2030: ao fechar, inicia a rolagem dos "169 objetivos"
+    if (isTurn169 && obj169Stage === 'aguardando') {
+      setObj169Stage('rodando')
+      obj169TimerRef.current = window.setTimeout(() => {
+        setObj169Stage('fala')
+        obj169TimerRef.current = window.setTimeout(() => {
+          setObj169Stage('concluido')
+        }, 2400)
+      }, 5000)
+    }
   }
 
-  const currentTurn = TURNOS[turnIndex]
-  const disabledForThisTurn = (currentTurn && disabledOptionIds[currentTurn.id]) || []
-  const hasDisabledWrongOptions = disabledForThisTurn.length > 0
+  const handlePhaseContinue = () => {
+    if (faseIdx + 1 < FASES.length) {
+      const nextFase = faseIdx + 1
+      setFaseIdx(nextFase)
+      setTurnIdx(0)
+      setObj169Stage('aguardando')
+      setView('turn')
+      checkAndOpenTurnCard(nextFase, 0, unlockedCardIds)
+    }
+    // Na Fase 3 (última), o aviso "A Fase 4 vem a seguir." é exibido e não há avanço.
+  }
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div
-      className="min-h-screen text-white font-sans selection:bg-[#C9A227] selection:text-[#0A1A2F]"
+      className="min-h-dvh text-white font-sans selection:bg-[#C9A227] selection:text-[#0A1A2F]"
       style={{
         background: 'radial-gradient(circle at 50% 20%, #132E52 0%, #0A1A2F 50%, #0E2440 100%)',
       }}
     >
       {/* TOPO FIXO */}
-      <header className="sticky top-0 z-50 bg-[#0A1A2F]/95 backdrop-blur-md border-b border-[#C9A227]/35 shadow-[0_4px_20px_rgba(0,0,0,0.5)] px-4 py-3">
+      <header className="sticky top-0 z-40 bg-[#0A1A2F]/95 backdrop-blur-md border-b border-[#C9A227]/35 shadow-[0_4px_20px_rgba(0,0,0,0.5)] px-4 py-3">
         <div className="max-w-6xl mx-auto flex flex-col gap-3">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
@@ -534,8 +281,8 @@ export default function Index() {
                 {view === 'intro'
                   ? 'Preparação do Conselho'
                   : view === 'phase_end'
-                    ? 'Fim da Fase 1 — 1970'
-                    : `Turno ${currentTurn?.id || 1} — Ano ${currentTurn?.ano || 1944}`}
+                    ? `${fase.endTitle} — ${fase.turnos[turnIdx]?.ano ?? ''}`
+                    : `${fase.titulo} — Turno ${currentTurn?.id ?? 1} · Ano ${currentTurn?.ano ?? 1944}`}
               </div>
 
               <button
@@ -554,56 +301,32 @@ export default function Index() {
 
           {/* 3 BARRAS DE STATUS */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {/* Barra 1: Estabilidade Econômica */}
-            <div className="bg-[#0E2440]/70 p-2.5 px-3 rounded-lg border border-white/10">
-              <div className="flex justify-between items-center mb-1 text-xs font-semibold">
-                <span className="text-slate-200 truncate">Estabilidade Econômica</span>
-                <span className="font-extrabold tabular-nums ml-2">{clampBar(bars.econ)}</span>
+            {(
+              [
+                { type: 'econ', label: 'Estabilidade Econômica' },
+                { type: 'dir', label: 'Direitos Humanos & Desenv.' },
+                { type: 'hum', label: 'Capacidade Humanitária' },
+              ] as const
+            ).map(({ type, label }) => (
+              <div
+                key={type}
+                className="bg-[#0E2440]/70 p-2.5 px-3 rounded-lg border border-white/10"
+              >
+                <div className="flex justify-between items-center mb-1 text-xs font-semibold">
+                  <span className="text-slate-200 truncate">{label}</span>
+                  <span className="font-extrabold tabular-nums ml-2">{clampBar(bars[type])}</span>
+                </div>
+                <div className="w-full h-3.5 bg-black/45 rounded-full overflow-hidden border border-white/10">
+                  <div
+                    className="h-full rounded-full transition-all duration-700 ease-out"
+                    style={{
+                      width: `${clampBar(bars[type])}%`,
+                      backgroundColor: getBarColor(type, clampBar(bars[type])),
+                    }}
+                  />
+                </div>
               </div>
-              <div className="w-full h-3.5 bg-black/45 rounded-full overflow-hidden border border-white/10 inset-shadow">
-                <div
-                  className="h-full rounded-full transition-all duration-600 ease-out"
-                  style={{
-                    width: `${clampBar(bars.econ)}%`,
-                    backgroundColor: getBarColor('econ', clampBar(bars.econ)),
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Barra 2: Direitos Humanos & Desenv. */}
-            <div className="bg-[#0E2440]/70 p-2.5 px-3 rounded-lg border border-white/10">
-              <div className="flex justify-between items-center mb-1 text-xs font-semibold">
-                <span className="text-slate-200 truncate">Direitos Humanos & Desenv.</span>
-                <span className="font-extrabold tabular-nums ml-2">{clampBar(bars.dir)}</span>
-              </div>
-              <div className="w-full h-3.5 bg-black/45 rounded-full overflow-hidden border border-white/10 inset-shadow">
-                <div
-                  className="h-full rounded-full transition-all duration-600 ease-out"
-                  style={{
-                    width: `${clampBar(bars.dir)}%`,
-                    backgroundColor: getBarColor('dir', clampBar(bars.dir)),
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Barra 3: Capacidade Humanitária */}
-            <div className="bg-[#0E2440]/70 p-2.5 px-3 rounded-lg border border-white/10">
-              <div className="flex justify-between items-center mb-1 text-xs font-semibold">
-                <span className="text-slate-200 truncate">Capacidade Humanitária</span>
-                <span className="font-extrabold tabular-nums ml-2">{clampBar(bars.hum)}</span>
-              </div>
-              <div className="w-full h-3.5 bg-black/45 rounded-full overflow-hidden border border-white/10 inset-shadow">
-                <div
-                  className="h-full rounded-full transition-all duration-600 ease-out"
-                  style={{
-                    width: `${clampBar(bars.hum)}%`,
-                    backgroundColor: getBarColor('hum', clampBar(bars.hum)),
-                  }}
-                />
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </header>
@@ -655,7 +378,7 @@ export default function Index() {
         {view === 'turn' && currentTurn && (
           <div>
             {feedbackNotice && (
-              <div className="bg-[#0E2440]/95 border border-[#C9A227] text-[#F4E8C1] p-3 rounded-lg text-center font-semibold text-base mb-4 shadow-lg animate-in fade-in">
+              <div className="bg-[#0E2440]/95 border border-[#C9A227] text-[#F4E8C1] p-3 rounded-lg text-center font-semibold text-base mb-4 shadow-lg">
                 🕊️ {feedbackNotice}
               </div>
             )}
@@ -682,7 +405,6 @@ export default function Index() {
                 )}
               </div>
 
-              {/* Título */}
               <h2
                 className="text-2xl md:text-3xl font-bold text-[#0A1A2F] mb-3 leading-tight"
                 style={{ fontFamily: 'Georgia, serif' }}
@@ -690,20 +412,11 @@ export default function Index() {
                 {currentTurn.titulo}
               </h2>
 
-              {/* Narrativa com Clamp de 4 linhas */}
-              <p
-                className="text-base md:text-lg text-[#2D3D4E] leading-relaxed mb-4 overflow-hidden"
-                style={{
-                  display: '-webkit-box',
-                  WebkitLineClamp: 4,
-                  WebkitBoxOrient: 'vertical',
-                  lineClamp: 4,
-                }}
-              >
+              <p className="text-base md:text-lg text-[#2D3D4E] leading-relaxed mb-4">
                 {currentTurn.texto}
               </p>
 
-              {/* Linha "Na vida real" ao voltar */}
+              {/* Linha "Na vida real" ao voltar de erro */}
               {hasDisabledWrongOptions && currentTurn.naVidaReal && (
                 <div className="bg-[#FEF3C7] border-l-4 border-[#D97706] p-3 rounded-r-lg text-sm md:text-base text-[#78350F] italic font-semibold mb-4">
                   {currentTurn.naVidaReal}
@@ -717,6 +430,9 @@ export default function Index() {
                 </div>
               )}
 
+              {/* Piada dos 169 objetivos → fala → 17 ODS (turno da Agenda 2030) */}
+              {isTurn169 && <Obj169Joke stage={obj169Stage} />}
+
               {/* Opções de escolha */}
               <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-[#5A6B7C] font-bold mb-3">
                 <span>Opções em Votação no Plenário</span>
@@ -728,7 +444,8 @@ export default function Index() {
                   const isWrongAndDisabled = disabledForThisTurn.includes(opcao.id)
                   const isBlockedByCard =
                     isCardModalBlocking ||
-                    (currentTurn.card && !unlockedCardIds.includes(currentTurn.card.id))
+                    (currentTurn.card && !unlockedCardIds.includes(currentTurn.card.id)) ||
+                    (isTurn169 && obj169Stage !== 'concluido')
 
                   let dominantBorder = 'border-l-[#2E7DD1]'
                   if (opcao.efeitos) {
@@ -746,6 +463,7 @@ export default function Index() {
                         key={opcao.id}
                         type="button"
                         disabled
+                        aria-label={`Opção descartada: ${opcao.texto}`}
                         className="w-full text-left bg-[#EAE6DF] border border-[#C8C2B6] border-l-8 border-l-gray-400 rounded-xl p-4 text-[#828C96] line-through font-semibold text-base md:text-lg cursor-not-allowed opacity-75 shadow-none"
                       >
                         {opcao.texto}
@@ -759,7 +477,7 @@ export default function Index() {
                       type="button"
                       disabled={Boolean(isBlockedByCard)}
                       onClick={() => handleChoiceClick(idx)}
-                      className={`w-full text-left bg-white hover:bg-[#FCFBF9] border border-[#D6D0C4] border-l-8 ${dominantBorder} rounded-xl p-4 text-[#1E2A38] font-semibold text-base md:text-lg shadow-sm hover:shadow-md transition-all transform hover:-translate-y-0.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50`}
+                      className={`w-full text-left bg-white hover:bg-[#FCFBF9] border border-[#D6D0C4] border-l-8 ${dominantBorder} rounded-xl p-4 text-[#1E2A38] font-semibold text-base md:text-lg shadow-sm hover:shadow-md transition-all transform hover:-translate-y-0.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transform-none`}
                     >
                       {opcao.texto}
                     </button>
@@ -772,7 +490,7 @@ export default function Index() {
 
         {/* VIEW 3: CONSEQUÊNCIA */}
         {view === 'consequence' && pendingConsequence && (
-          <div className="relative bg-gradient-to-br from-[#30171D] via-[#1A0D11] to-[#0F0609] border-2 border-[#84232F] rounded-2xl p-7 md:p-10 text-white shadow-[0_10px_40px_rgba(0,0,0,0.8)]">
+          <div className="bg-gradient-to-br from-[#30171D] via-[#1A0D11] to-[#0F0609] border-2 border-[#84232F] rounded-2xl p-7 md:p-10 text-white shadow-[0_10px_40px_rgba(0,0,0,0.8)]">
             <div className="inline-block bg-[#B23A48]/30 border border-[#B23A48] text-[#FFB3BA] text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
               ⚠️ Desdobramento Negativo
             </div>
@@ -785,19 +503,17 @@ export default function Index() {
             <p className="text-lg md:text-xl text-[#F1D9DC] leading-relaxed mb-8 max-w-3xl">
               {pendingConsequence.textoConsequencia}
             </p>
-            <div>
-              <button
-                type="button"
-                onClick={handleGameOverBack}
-                className="bg-[#B23A48] hover:bg-[#962F3C] border border-[#D64545] text-white text-base md:text-lg font-bold px-7 py-3.5 rounded-lg shadow-[0_4px_16px_rgba(178,58,72,0.4)] transition-all transform hover:-translate-y-0.5 cursor-pointer flex items-center gap-2"
-              >
-                Game Over — Voltar à decisão
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleGameOverBack}
+              className="bg-[#B23A48] hover:bg-[#962F3C] border border-[#D64545] text-white text-base md:text-lg font-bold px-7 py-3.5 rounded-lg shadow-[0_4px_16px_rgba(178,58,72,0.4)] transition-all transform hover:-translate-y-0.5 cursor-pointer flex items-center gap-2 motion-reduce:transform-none"
+            >
+              Game Over — Voltar à decisão
+            </button>
           </div>
         )}
 
-        {/* VIEW 4: FIM DA FASE 1 */}
+        {/* VIEW 4: FIM DA FASE */}
         {view === 'phase_end' && (
           <div className="relative bg-[#F6F1E7] border border-[#D9CFBA] rounded-2xl p-8 md:p-12 text-[#1E2A38] shadow-[0_10px_30px_rgba(0,0,0,0.45)] text-center">
             <div className="absolute inset-1.5 border border-dashed border-[#C9A227]/40 rounded-xl pointer-events-none" />
@@ -806,16 +522,13 @@ export default function Index() {
               className="text-3xl font-bold text-[#0A1A2F] mb-2"
               style={{ fontFamily: 'Georgia, serif' }}
             >
-              Fim da Fase 1
+              {fase.endTitle}
             </h2>
-            <p className="text-base md:text-lg text-[#55677B] mb-7">
-              De Bretton Woods ao câmbio flutuante: 26 anos de decisões que moldaram a economia
-              mundial.
-            </p>
+            <p className="text-base md:text-lg text-[#55677B] mb-7">{fase.endSubtitle}</p>
 
             <div className="bg-white border border-[#D9CFBA] rounded-xl p-5 max-w-md mx-auto mb-7 text-left">
               <h3 className="text-base font-bold text-[#0A1A2F] border-b border-[#D9CFBA] pb-2 mb-3">
-                Balanço Final da Gestão (1944–1970)
+                {fase.endBalanceTitle}
               </h3>
               <div className="flex justify-between py-1.5 border-b border-gray-100 text-sm md:text-base">
                 <span className="text-[#2E7DD1] font-bold">Estabilidade Econômica</span>
@@ -832,17 +545,17 @@ export default function Index() {
             </div>
 
             <div className="flex flex-col items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setPhase2ToastVisible(true)}
-                className="bg-[#009EDB] hover:bg-[#0084B8] text-white font-bold text-lg px-8 py-3.5 rounded-lg shadow-md cursor-pointer"
-              >
-                {phase2ToastVisible ? 'A Fase 2 vem a seguir.' : 'Continuar'}
-              </button>
-
-              {phase2ToastVisible && (
-                <div className="bg-[#0A1A2F] text-[#F4E8C1] border border-[#C9A227] px-4 py-2.5 rounded-lg font-semibold text-sm animate-in fade-in">
-                  A Fase 2 vem a seguir.
+              {faseIdx + 1 < FASES.length ? (
+                <button
+                  type="button"
+                  onClick={handlePhaseContinue}
+                  className="bg-[#009EDB] hover:bg-[#0084B8] text-white font-bold text-lg px-8 py-3.5 rounded-lg shadow-md cursor-pointer"
+                >
+                  Continuar
+                </button>
+              ) : (
+                <div className="bg-[#0A1A2F] text-[#F4E8C1] border border-[#C9A227] px-4 py-2.5 rounded-lg font-semibold text-sm">
+                  {fase.proximaAviso}
                 </div>
               )}
 
@@ -863,9 +576,10 @@ export default function Index() {
         <div
           role="dialog"
           aria-modal="true"
+          aria-label={`Card de enciclopédia: ${activeCardModal.titulo}`}
           className="fixed inset-0 z-50 bg-[#050E1A]/85 backdrop-blur-sm flex items-center justify-center p-4"
         >
-          <div className="bg-[#F6F1E7] border-2 border-[#C9A227] rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8 text-[#1E2A38] shadow-[0_20px_50px_rgba(0,0,0,0.65),0_0_30px_rgba(201,162,39,0.3)]">
+          <div className="bg-[#F6F1E7] border-2 border-[#C9A227] rounded-2xl max-w-2xl w-full max-h-[90dvh] overflow-y-auto p-6 md:p-8 text-[#1E2A38] shadow-[0_20px_50px_rgba(0,0,0,0.65),0_0_30px_rgba(201,162,39,0.3)]">
             <div className="inline-flex items-center gap-2 bg-[#FEF3C7] border border-[#C9A227] text-[#8D5B05] text-xs font-extrabold uppercase tracking-widest px-3 py-1 rounded-full mb-3">
               📖 Card de Enciclopédia
             </div>
@@ -886,13 +600,17 @@ export default function Index() {
                 <img
                   src={activeCardModal.imagem}
                   alt={activeCardModal.titulo}
+                  width={640}
+                  height={256}
                   onError={() => setImageFailed(true)}
                   className="w-full h-full object-cover"
                 />
               </div>
             ) : activeCardModal.imagem ? (
               <div className="w-full h-44 rounded-xl mb-4 border border-[#D9CFBA] bg-gradient-to-br from-[#1A365D] to-[#0E2440] flex flex-col items-center justify-center p-4 text-center">
-                <span className="text-4xl mb-1">{activeCardModal.fallbackEmoji || '🏛️'}</span>
+                <span className="text-4xl mb-1" aria-hidden="true">
+                  {activeCardModal.fallbackEmoji || '🏛️'}
+                </span>
                 <span className="text-xs text-slate-300 font-medium">
                   {activeCardModal.fallbackCaption || activeCardModal.titulo}
                 </span>
@@ -924,7 +642,7 @@ export default function Index() {
           aria-label="Arquivo de Enciclopédia"
           className="fixed inset-0 z-50 bg-[#050E1A]/85 backdrop-blur-sm flex items-center justify-center p-4"
         >
-          <div className="bg-[#F6F1E7] border-2 border-[#C9A227] rounded-2xl max-w-xl w-full max-h-[85vh] overflow-y-auto p-6 md:p-8 text-[#1E2A38] shadow-2xl">
+          <div className="bg-[#F6F1E7] border-2 border-[#C9A227] rounded-2xl max-w-xl w-full max-h-[85dvh] overflow-y-auto p-6 md:p-8 text-[#1E2A38] shadow-2xl">
             <div className="inline-flex items-center gap-2 bg-[#FEF3C7] border border-[#C9A227] text-[#8D5B05] text-xs font-extrabold uppercase tracking-widest px-3 py-1 rounded-full mb-3">
               📁 Memória Institucional
             </div>
@@ -946,7 +664,9 @@ export default function Index() {
                 </div>
               ) : (
                 unlockedCardIds.map((cardId) => {
-                  const cardData = TURNOS.find((t) => t.card?.id === cardId)?.card
+                  const cardData = FASES.flatMap((f) => f.turnos).find(
+                    (t) => t.card?.id === cardId,
+                  )?.card
                   if (!cardData) return null
                   return (
                     <button
@@ -970,7 +690,9 @@ export default function Index() {
                           </div>
                         )}
                       </div>
-                      <span className="text-[#C9A227] font-bold text-lg">→</span>
+                      <span className="text-[#C9A227] font-bold text-lg" aria-hidden="true">
+                        →
+                      </span>
                     </button>
                   )
                 })
