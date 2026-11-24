@@ -1,0 +1,2020 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conselho Global — Jogo Educativo</title>
+    <style>
+      /* =====================================================================
+       DESIGN SYSTEM — "MESA DE CONSELHO" DIPLOMÁTICA
+       - Fundo: Azul-marinho escuro #0A1A2F -> #0E2440
+       - Pergaminho: #F6F1E7 (borda #D9CFBA)
+       - Acento: Dourado #C9A227
+       - Botão ONU: #009EDB / Game Over: #B23A48
+       - Barras: Econômica (azul), Direitos Humanos (verde), Humanitária (laranja)
+       ===================================================================== */
+      :root {
+        --bg-top: #0a1a2f;
+        --bg-bottom: #0e2440;
+        --parchment: #f6f1e7;
+        --parchment-border: #d9cfba;
+        --parchment-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        --text-main: #1e2a38;
+        --text-muted: #5a6b7c;
+        --gold-brass: #c9a227;
+        --gold-soft: #f4e8c1;
+        --onu-blue: #009edb;
+        --onu-blue-hover: #0084b8;
+        --danger-red: #b23a48;
+        --danger-red-hover: #962f3c;
+        --alert-red: #d64545;
+        --bar-econ-base: #2e7dd1;
+        --bar-econ-high: #4da3ff;
+        --bar-dir-base: #2e9e5b;
+        --bar-dir-high: #3fcf8e;
+        --bar-hum-base: #e8871e;
+        --bar-hum-high: #ffa94d;
+        --font-serif: Georgia, 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+        --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        min-height: 100vh;
+        min-height: 100dvh;
+        font-family: var(--font-sans);
+        background: radial-gradient(
+          circle at 50% 20%,
+          #132e52 0%,
+          var(--bg-top) 50%,
+          var(--bg-bottom) 100%
+        );
+        color: #ffffff;
+        font-size: 18px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* TOPO FIXO */
+      header.fixed-top {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(10, 26, 47, 0.94);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-bottom: 1px solid rgba(201, 162, 39, 0.35);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        padding: 12px 20px;
+      }
+
+      .top-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .top-row-title-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .brand-block {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .brand-emblem {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #009edb 0%, #0a3c6b 100%);
+        border: 2px solid var(--gold-brass);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        box-shadow: 0 0 12px rgba(201, 162, 39, 0.4);
+        flex-shrink: 0;
+      }
+
+      .brand-title-wrap h1 {
+        font-family: var(--font-serif);
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: #ffffff;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+        line-height: 1.2;
+      }
+
+      .brand-title-wrap p {
+        font-size: 13px;
+        color: var(--gold-soft);
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+
+      .turn-badge-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .turn-indicator {
+        background: rgba(201, 162, 39, 0.15);
+        border: 1px solid var(--gold-brass);
+        color: var(--gold-soft);
+        padding: 6px 14px;
+        border-radius: 9999px;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        box-shadow: inset 0 0 8px rgba(201, 162, 39, 0.2);
+      }
+
+      .btn-archive {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition:
+          background 0.2s,
+          border-color 0.2s,
+          transform 0.1s;
+      }
+
+      .btn-archive:hover {
+        background: rgba(255, 255, 255, 0.16);
+        border-color: var(--gold-brass);
+        transform: translateY(-1px);
+      }
+
+      .badge-count {
+        background: var(--gold-brass);
+        color: #0a1a2f;
+        font-size: 12px;
+        font-weight: 800;
+        border-radius: 9999px;
+        padding: 2px 7px;
+        line-height: 1;
+      }
+
+      /* BARRAS DE STATUS */
+      .bars-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+
+      .bar-item {
+        background: rgba(14, 36, 64, 0.7);
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .bar-label-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 5px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .bar-title {
+        color: #e2e8f0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .bar-value {
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        margin-left: 6px;
+      }
+
+      .bar-track {
+        width: 100%;
+        height: 14px;
+        background: rgba(0, 0, 0, 0.45);
+        border-radius: 9999px;
+        overflow: hidden;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .bar-fill {
+        height: 100%;
+        width: 50%;
+        border-radius: 9999px;
+        transition:
+          width 600ms ease-out,
+          background-color 600ms ease-out;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      }
+
+      /* CONTAINER PRINCIPAL */
+      main.game-container {
+        max-width: 900px;
+        margin: 28px auto 60px auto;
+        padding: 0 20px;
+      }
+
+      /* CARDS ESTILO PERGAMINHO */
+      .parchment-card {
+        background: var(--parchment);
+        border: 1px solid var(--parchment-border);
+        border-radius: 14px;
+        padding: 30px 32px;
+        color: var(--text-main);
+        box-shadow: var(--parchment-shadow);
+        position: relative;
+      }
+
+      .parchment-card::before {
+        content: '';
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        right: 6px;
+        bottom: 6px;
+        border: 1px dashed rgba(201, 162, 39, 0.4);
+        border-radius: 10px;
+        pointer-events: none;
+      }
+
+      /* TELA DE ABERTURA */
+      .intro-card {
+        text-align: center;
+        padding: 44px 36px;
+      }
+
+      .intro-emblem {
+        font-size: 56px;
+        margin-bottom: 12px;
+        display: inline-block;
+        filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
+      }
+
+      .intro-title {
+        font-family: var(--font-serif);
+        font-size: 36px;
+        color: #0a1a2f;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .intro-subtitle {
+        font-size: 18px;
+        color: #55677b;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-weight: 700;
+        margin-bottom: 24px;
+      }
+
+      .intro-text {
+        font-size: 17px;
+        color: #2d3d4e;
+        max-width: 620px;
+        margin: 0 auto 32px auto;
+        line-height: 1.6;
+      }
+
+      .intro-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* ÁREA DO EVENTO DO TURNO */
+      .event-card {
+        animation: fadeUp 350ms ease-out both;
+      }
+
+      .event-type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 12px;
+      }
+
+      .badge-decision {
+        background: #e2ecf7;
+        color: #1a4971;
+        border: 1px solid #b0cded;
+      }
+
+      .badge-historic {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fcd34d;
+      }
+
+      .badge-routine {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #a5d6a7;
+      }
+
+      .event-title {
+        font-family: var(--font-serif);
+        font-size: 26px;
+        font-weight: 700;
+        color: #0a1a2f;
+        line-height: 1.25;
+        margin-bottom: 14px;
+      }
+
+      /* CLAMP DE 4 LINHAS POR CSS */
+      .event-narrative {
+        font-size: 18px;
+        color: #2d3d4e;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 4;
+        line-clamp: 4;
+        overflow: hidden;
+        margin-bottom: 16px;
+      }
+
+      /* FALA DO CONSELHEIRO (PIADA) */
+      .counselor-quote {
+        background: rgba(201, 162, 39, 0.12);
+        border-left: 4px solid var(--gold-brass);
+        padding: 10px 14px;
+        border-radius: 0 8px 8px 0;
+        font-size: 15px;
+        color: #4a3e1d;
+        font-style: italic;
+        margin-bottom: 16px;
+        line-height: 1.45;
+      }
+
+      /* LINHA "NA VIDA REAL" */
+      .real-life-notice {
+        background: #fef3c7;
+        border-left: 4px solid #d97706;
+        padding: 10px 14px;
+        border-radius: 0 8px 8px 0;
+        font-size: 15px;
+        color: #78350f;
+        font-style: italic;
+        font-weight: 600;
+        margin-bottom: 18px;
+        animation: fadeUp 300ms ease-out both;
+      }
+
+      /* ÁREA DE BOTÕES DE ESCOLHA */
+      .choices-title {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        font-weight: 700;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .choices-title::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--parchment-border);
+      }
+
+      .choices-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .choice-btn {
+        position: relative;
+        background: #ffffff;
+        border: 1.5px solid #d6d0c4;
+        border-left: 8px solid var(--onu-blue);
+        border-radius: 10px;
+        padding: 16px 20px;
+        text-align: left;
+        font-family: var(--font-sans);
+        font-size: 17px;
+        font-weight: 600;
+        color: #1e2a38;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease,
+          background-color 0.15s ease,
+          border-color 0.15s ease;
+        line-height: 1.4;
+        animation: fadeUp 300ms ease-out both;
+      }
+
+      .choice-btn:nth-child(1) {
+        animation-delay: 60ms;
+      }
+      .choice-btn:nth-child(2) {
+        animation-delay: 120ms;
+      }
+      .choice-btn:nth-child(3) {
+        animation-delay: 180ms;
+      }
+
+      .choice-btn.dominant-econ {
+        border-left-color: var(--bar-econ-base);
+      }
+      .choice-btn.dominant-dir {
+        border-left-color: var(--bar-dir-base);
+      }
+      .choice-btn.dominant-hum {
+        border-left-color: var(--bar-hum-base);
+      }
+
+      .choice-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+        border-color: #b5ad9e;
+        background: #fcfbf9;
+      }
+
+      .choice-btn:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      .choice-btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      /* OPÇÃO ERRADA RISCADA (LINE-THROUGH CINZA) */
+      .choice-btn.disabled-wrong {
+        background: #eae6df !important;
+        border-color: #c8c2b6 !important;
+        border-left-color: #9ca3af !important;
+        color: #828c96 !important;
+        text-decoration: line-through !important;
+        box-shadow: none !important;
+        cursor: not-allowed !important;
+        opacity: 0.75 !important;
+        animation: stampWrong 300ms ease-in-out both;
+      }
+
+      /* TELA DE CONSEQUÊNCIA */
+      .consequence-wrapper {
+        position: relative;
+        background: radial-gradient(circle at 50% 30%, #30171d 0%, #1a0d11 80%, #0f0609 100%);
+        border: 2px solid #84232f;
+        border-radius: 14px;
+        padding: 36px 32px;
+        color: #ffffff;
+        box-shadow:
+          0 10px 40px rgba(0, 0, 0, 0.8),
+          inset 0 0 80px rgba(178, 58, 72, 0.25);
+        animation: consequenceVignette 400ms ease-out both;
+      }
+
+      .consequence-badge {
+        display: inline-block;
+        background: rgba(178, 58, 72, 0.3);
+        border: 1px solid #b23a48;
+        color: #ffb3ba;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        padding: 5px 14px;
+        border-radius: 9999px;
+        margin-bottom: 16px;
+      }
+
+      .consequence-title {
+        font-family: var(--font-serif);
+        font-size: 30px;
+        font-weight: 700;
+        color: #ffd4d8;
+        margin-bottom: 18px;
+        line-height: 1.2;
+        animation: pulseGrave 1.5s ease-in-out infinite;
+      }
+
+      .consequence-text {
+        font-size: 20px;
+        line-height: 1.6;
+        color: #f1d9dc;
+        margin-bottom: 32px;
+        max-width: 760px;
+      }
+
+      /* TELA DE FIM DA FASE 1 */
+      .phase-end-card {
+        text-align: center;
+        padding: 40px 32px;
+      }
+
+      .phase-end-emblem {
+        font-size: 50px;
+        margin-bottom: 14px;
+      }
+
+      .phase-end-title {
+        font-family: var(--font-serif);
+        font-size: 32px;
+        font-weight: 700;
+        color: #0a1a2f;
+        margin-bottom: 8px;
+      }
+
+      .phase-end-sub {
+        font-size: 17px;
+        color: #55677b;
+        margin-bottom: 28px;
+      }
+
+      .bars-summary {
+        background: #ffffff;
+        border: 1px solid var(--parchment-border);
+        border-radius: 10px;
+        padding: 20px;
+        max-width: 520px;
+        margin: 0 auto 30px auto;
+        text-align: left;
+      }
+
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #ece7dd;
+        font-size: 16px;
+      }
+
+      .summary-row:last-child {
+        border-bottom: none;
+      }
+
+      /* BOTÕES GERAIS */
+      .btn-primary {
+        background: var(--onu-blue);
+        color: #ffffff;
+        font-size: 17px;
+        font-weight: 700;
+        padding: 13px 28px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 158, 219, 0.35);
+        transition:
+          background 0.15s,
+          transform 0.1s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn-primary:hover {
+        background: var(--onu-blue-hover);
+        transform: translateY(-1px);
+      }
+
+      .btn-gameover {
+        background: var(--danger-red);
+        color: #ffffff;
+        font-size: 18px;
+        font-weight: 700;
+        padding: 14px 32px;
+        border-radius: 8px;
+        border: 1px solid #d64545;
+        cursor: pointer;
+        box-shadow: 0 4px 16px rgba(178, 58, 72, 0.4);
+        transition:
+          background 0.15s,
+          transform 0.1s;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .btn-gameover:hover {
+        background: var(--danger-red-hover);
+        transform: translateY(-1px);
+      }
+
+      .btn-outline {
+        background: transparent;
+        border: 1.5px solid var(--parchment-border);
+        color: #4a5b6c;
+        font-size: 15px;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          color 0.15s;
+      }
+
+      .btn-outline:hover {
+        background: #eae5d9;
+        color: #0a1a2f;
+      }
+
+      /* MODAL DE CARD DE ENCICLOPÉDIA (BLOQUEANTE) */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: rgba(5, 14, 26, 0.82);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .modal-content {
+        background: var(--parchment);
+        border: 2px solid var(--gold-brass);
+        border-radius: 16px;
+        max-width: 680px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 32px 36px;
+        color: var(--text-main);
+        box-shadow:
+          0 20px 50px rgba(0, 0, 0, 0.65),
+          0 0 30px rgba(201, 162, 39, 0.3);
+        position: relative;
+        animation: cardGavel 220ms ease-out both;
+      }
+
+      .encyclopedia-stamp {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #fef3c7;
+        border: 1.5px solid var(--gold-brass);
+        color: #8d5b05;
+        font-size: 13px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 5px 14px;
+        border-radius: 9999px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 6px rgba(201, 162, 39, 0.2);
+        animation: stampIn 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+      }
+
+      .modal-card-title {
+        font-family: var(--font-serif);
+        font-size: 28px;
+        font-weight: 700;
+        color: #0a1a2f;
+        line-height: 1.25;
+        margin-bottom: 4px;
+      }
+
+      .modal-card-sigla {
+        font-size: 15px;
+        font-weight: 700;
+        color: #55677b;
+        letter-spacing: 0.5px;
+        margin-bottom: 16px;
+        text-transform: uppercase;
+      }
+
+      .modal-card-img-wrap {
+        width: 100%;
+        height: 240px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 18px;
+        border: 1px solid var(--parchment-border);
+        background: #e5e0d4;
+        position: relative;
+      }
+
+      .modal-card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .modal-card-fallback {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #1a365d 0%, #0e2440 100%);
+        color: #f4e8c1;
+        padding: 16px;
+        text-align: center;
+      }
+
+      .modal-card-fallback .fallback-emoji {
+        font-size: 48px;
+        margin-bottom: 6px;
+      }
+
+      .modal-card-fallback .fallback-caption {
+        font-size: 13px;
+        color: #cbd5e1;
+        font-weight: 500;
+      }
+
+      .modal-card-text {
+        font-size: 17px;
+        line-height: 1.65;
+        color: #2d3d4e;
+        margin-bottom: 24px;
+        text-align: justify;
+      }
+
+      .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      /* MODAL DO ARQUIVO */
+      .archive-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 18px 0 24px 0;
+      }
+
+      .archive-item-btn {
+        background: #ffffff;
+        border: 1px solid var(--parchment-border);
+        border-radius: 10px;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        font-family: var(--font-sans);
+        text-align: left;
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          transform 0.1s;
+      }
+
+      .archive-item-btn:hover {
+        background: #faf7f0;
+        border-color: var(--gold-brass);
+        transform: translateX(3px);
+      }
+
+      .archive-item-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0a1a2f;
+      }
+
+      .archive-item-sigla {
+        font-size: 13px;
+        color: #64748b;
+        margin-top: 2px;
+      }
+
+      .archive-empty {
+        padding: 24px;
+        text-align: center;
+        color: #718096;
+        font-style: italic;
+      }
+
+      /* FEEDBACK TOAST / BANNER TRANSITÓRIO */
+      .feedback-banner {
+        background: rgba(14, 36, 64, 0.95);
+        border: 1px solid var(--gold-brass);
+        color: #f4e8c1;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 16px;
+        animation: fadeUp 250ms ease-out both;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+      }
+
+      /* ANIMAÇÕES */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes cardGavel {
+        from {
+          opacity: 0;
+          transform: scale(0.94);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @keyframes stampIn {
+        from {
+          opacity: 0;
+          transform: scale(1.3) rotate(-3deg);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) rotate(0deg);
+        }
+      }
+
+      @keyframes stampWrong {
+        0% {
+          transform: translateX(0);
+        }
+        20% {
+          transform: translateX(-6px);
+        }
+        40% {
+          transform: translateX(6px);
+        }
+        60% {
+          transform: translateX(-4px);
+        }
+        80% {
+          transform: translateX(4px);
+        }
+        100% {
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes consequenceVignette {
+        from {
+          opacity: 0;
+          transform: scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @keyframes pulseGrave {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.85;
+        }
+      }
+
+      /* RESPONSIVIDADE (PROJETOR X MOBILE) */
+      @media (max-width: 768px) {
+        body {
+          font-size: 16px;
+        }
+        header.fixed-top {
+          padding: 10px 14px;
+        }
+        .top-row-title-actions {
+          gap: 10px;
+        }
+        .brand-title-wrap h1 {
+          font-size: 20px;
+        }
+        .bars-grid {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+        main.game-container {
+          margin: 16px auto 40px auto;
+          padding: 0 12px;
+        }
+        .parchment-card {
+          padding: 20px 18px;
+        }
+        .modal-content {
+          padding: 22px 20px;
+        }
+        .modal-card-img-wrap {
+          height: 180px;
+        }
+        .consequence-wrapper {
+          padding: 24px 20px;
+        }
+        .consequence-title {
+          font-size: 24px;
+        }
+        .consequence-text {
+          font-size: 17px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- TOPO FIXO (HEADER DIPLOMÁTICO) -->
+    <header class="fixed-top" id="mainHeader">
+      <div class="top-container">
+        <div class="top-row-title-actions">
+          <div class="brand-block">
+            <div class="brand-emblem" aria-hidden="true">🌐</div>
+            <div class="brand-title-wrap">
+              <h1>Conselho Global</h1>
+              <p>Coordenador do Conselho Global</p>
+            </div>
+          </div>
+
+          <div class="turn-badge-wrap">
+            <div class="turn-indicator" id="turnIndicator">Turno 1 — Ano 1944</div>
+            <button
+              class="btn-archive"
+              id="btnOpenArchive"
+              type="button"
+              title="Abrir Arquivo de Enciclopédia"
+            >
+              📁 Arquivo <span class="badge-count" id="archiveBadge">0</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3 BARRAS DE STATUS (0 A 100, COMEÇAM EM 50) -->
+        <div class="bars-grid">
+          <!-- BARRA 1: ESTABILIDADE ECONÔMICA (AZUL) -->
+          <div class="bar-item">
+            <div class="bar-label-row">
+              <span class="bar-title">Estabilidade Econômica</span>
+              <span class="bar-value" id="valEcon">50</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" id="fillEcon" style="width: 50%"></div>
+            </div>
+          </div>
+
+          <!-- BARRA 2: DIREITOS HUMANOS & DESENVOLVIMENTO (VERDE) -->
+          <div class="bar-item">
+            <div class="bar-label-row">
+              <span class="bar-title">Direitos Humanos & Desenv.</span>
+              <span class="bar-value" id="valDir">50</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" id="fillDir" style="width: 50%"></div>
+            </div>
+          </div>
+
+          <!-- BARRA 3: CAPACIDADE HUMANITÁRIA (LARANJA) -->
+          <div class="bar-item">
+            <div class="bar-label-row">
+              <span class="bar-title">Capacidade Humanitária</span>
+              <span class="bar-value" id="valHum">50</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" id="fillHum" style="width: 50%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTAINER DE JOGO -->
+    <main class="game-container" id="appRoot">
+      <!-- O CONTEÚDO SERÁ INJETADO DINAMICAMENTE PELO SCRIPT -->
+    </main>
+
+    <!-- MODAL BLOQUEANTE PARA CARD DE ENCICLOPÉDIA -->
+    <div
+      class="modal-backdrop"
+      id="encyclopediaModal"
+      style="display: none"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalCardTitle"
+    >
+      <div class="modal-content" id="modalCardBox">
+        <div class="encyclopedia-stamp">📖 Card de Enciclopédia</div>
+        <h2 class="modal-card-title" id="modalCardTitle"></h2>
+        <div class="modal-card-sigla" id="modalCardSigla"></div>
+
+        <div class="modal-card-img-wrap" id="modalCardImgWrap" style="display: none">
+          <!-- Imagem com onerror garantido -->
+          <img
+            class="modal-card-img"
+            id="modalCardImg"
+            src=""
+            alt="Registro histórico do órgão ou evento"
+            onerror="handleImageError(this)"
+          />
+          <div class="modal-card-fallback" id="modalCardFallback" style="display: none">
+            <div class="fallback-emoji" id="modalFallbackEmoji">🏛️</div>
+            <div class="fallback-caption" id="modalFallbackCaption">Documento Histórico</div>
+          </div>
+        </div>
+
+        <p class="modal-card-text" id="modalCardText"></p>
+
+        <div class="modal-footer">
+          <button class="btn-primary" id="btnCloseCard" type="button">Entendi, continuar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DO ARQUIVO -->
+    <div
+      class="modal-backdrop"
+      id="archiveModal"
+      style="display: none"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="archiveModalTitle"
+    >
+      <div class="modal-content">
+        <div class="encyclopedia-stamp">📁 Memória Institucional</div>
+        <h2 class="modal-card-title" id="archiveModalTitle">Arquivo de Enciclopédia</h2>
+        <p style="font-size: 15px; color: var(--text-muted); margin-bottom: 12px">
+          Documentos e cards já revelados pelo Conselho Global. Clique para reler.
+        </p>
+
+        <div class="archive-list" id="archiveListContainer">
+          <!-- Itens inseridos dinamicamente -->
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-outline" id="btnCloseArchive" type="button">Fechar Arquivo</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* =========================================================================
+       CONSTANTES DE IMAGENS PÚBLICAS DO WIKIMEDIA COMMONS
+       - Bretton Woods: Hotel Mount Washington
+       - OMC (constante para fases futuras): Centre William Rappard
+       - Refugiados (constante para fases futuras): Kutupalong
+       Todas possuem fallback robusto via onerror para CSS gradient + Emoji.
+       ========================================================================= */
+      const WIKIMEDIA_IMAGES = {
+        brettonWoods: {
+          url: 'https://upload.wikimedia.org/wikipedia/commons/3/32/Mount_Washington_Hotel_Resort_Bretton_Woods_New_Hampshire.JPG',
+          emoji: '🏨',
+          caption: 'Hotel Mount Washington — Bretton Woods (1944)',
+        },
+        omcGenebra: {
+          url: 'https://upload.wikimedia.org/wikipedia/commons/6/6c/Cwr_aerial_2001.jpg',
+          emoji: '🏛️',
+          caption: 'Centre William Rappard — Sede da OMC em Genebra',
+        },
+        kutupalong: {
+          url: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Kutupalong_rohingya_camp_view.jpg',
+          emoji: '🏕️',
+          caption: 'Campo de refugiados de Kutupalong',
+        },
+      }
+
+      /* =========================================================================
+       DADOS DO JOGO — ARRAY DE TURNOS (FASE 1: 1944–1970)
+       Efeitos: [Estabilidade Econômica, Direitos Humanos & Desenv., Capacidade Humanitária]
+       Textos EXATOS conforme especificação do projeto.
+       ========================================================================= */
+      const TURNOS = [
+        // TURNO 1 (1944) — tipo: "decisão"
+        {
+          id: 1,
+          ano: 1944,
+          tipo: 'decisao',
+          titulo: 'Como organizar o orçamento das agências?',
+          texto:
+            'A guerra na Europa ainda não acabou, mas os países aliados já desenham o mundo de depois dela. A primeira grande tarefa do Conselho: definir como as agências do Sistema das Nações Unidas serão financiadas.',
+          piada:
+            '🧑‍💼 Conselheiro: O anexo tem 400 páginas e ninguém leu. Como sempre, decidimos pelo clima da sala.',
+          card: {
+            id: 'onu_sistema',
+            titulo: 'Sistema das Nações Unidas',
+            sigla: 'ONU / Sistema ONU',
+            texto:
+              'A ONU faz parte do Sistema das Nações Unidas, que reúne 15 agências especializadas, 7 organizações relacionadas e diversos fundos e programas. Algumas agências já existiam antes da Primeira Guerra Mundial. Elas são coordenadas pelo Ecosoc e têm orçamento próprio, também por meio de contribuição. O Sistema existe para promover os direitos humanos, combater as mudanças climáticas e reduzir a desigualdade entre os povos.',
+          },
+          opcoes: [
+            {
+              id: 't1_a',
+              texto: 'Contribuições obrigatórias, proporcionais à economia de cada país',
+              efeitos: [5, 3, 0],
+              correta: true,
+            },
+            {
+              id: 't1_b',
+              texto: 'Orçamento igual para todos os países, grandes ou pequenos',
+              efeitos: [0, 5, 0],
+              correta: true,
+            },
+            {
+              id: 't1_c',
+              texto: 'Depender de doações voluntárias dos países mais ricos',
+              efeitos: [-3, 0, 5],
+              correta: true,
+            },
+          ],
+        },
+
+        // TURNO 2 (1944) — tipo: "decisão"
+        {
+          id: 2,
+          ano: 1944,
+          tipo: 'decisao',
+          titulo: 'Qual área priorizar neste primeiro momento?',
+          texto:
+            'O Sistema das Nações Unidas está de pé. Agora o Conselho precisa escolher onde concentrar os primeiros esforços das agências.',
+          piada:
+            '🧑‍💼 Conselheiro: O café do plenário acabou de novo. Se isso continuar, teremos nossa primeira crise diplomática interna.',
+          card: {
+            id: 'agencias_dh',
+            titulo: 'Agências de Direitos Humanos',
+            sigla: 'FAO, OMS, Unesco, OIT',
+            texto:
+              'Quatro agências têm grande impacto na defesa dos Direitos Humanos no dia a dia: a FAO (Organização das Nações Unidas para a Alimentação e Cultura), a OMS (Organização Mundial de Saúde), a Unesco (Organização das Nações Unidas para a Educação, Ciência e Cultura) e a OIT (Organização Internacional do Trabalho).',
+          },
+          opcoes: [
+            {
+              id: 't2_a',
+              texto: 'FAO — combate à fome e segurança alimentar',
+              efeitos: [0, 4, 6],
+              correta: true,
+            },
+            {
+              id: 't2_b',
+              texto: 'OMS — campanhas de saúde e vacinação',
+              efeitos: [0, 6, 4],
+              correta: true,
+            },
+            {
+              id: 't2_c',
+              texto: 'Unesco e OIT — educação, ciência e trabalho digno',
+              efeitos: [3, 6, 0],
+              correta: true,
+            },
+          ],
+        },
+
+        // TURNO 3 (1944) — tipo: "historica" — DECISÃO HISTÓRICA BRETTON WOODS
+        {
+          id: 3,
+          ano: 1944,
+          tipo: 'historica',
+          titulo: 'Conferência de Bretton Woods',
+          texto:
+            'Representantes de 44 nações aliadas reúnem-se em New Hampshire para desenhar a ordem econômica global do pós-guerra e evitar os erros que levaram à Grande Depressão.',
+          naVidaReal:
+            '📌 Na vida real: os países criaram o FMI e o Bird e adotaram o padrão dólar/ouro.',
+          card: {
+            id: 'bretton_woods',
+            titulo: 'Conferência de Bretton Woods',
+            sigla: 'FMI & BIRD (Banco Mundial)',
+            imagem: WIKIMEDIA_IMAGES.brettonWoods.url,
+            fallbackEmoji: WIKIMEDIA_IMAGES.brettonWoods.emoji,
+            fallbackCaption: WIKIMEDIA_IMAGES.brettonWoods.caption,
+            texto:
+              'A Conferência de Bretton Woods (1944) foi uma conferência monetária e financeira das Nações Unidas, realizada na cidade de mesmo nome no nordeste dos Estados Unidos. Ela criou as regras para o sistema monetário internacional do pós-Segunda Guerra Mundial, entre elas a adoção do padrão dólar/ouro. O principal objetivo era garantir estabilidade econômica, fundamental para a paz. As instituições criadas passariam a fornecer empréstimos para países com dificuldades financeiras.',
+          },
+          opcoes: [
+            {
+              id: 't3_a',
+              texto:
+                'Criar o FMI e o Bird (Banco Mundial) e adotar o padrão dólar/ouro, com empréstimos a países em dificuldade e assistência financeira para reconstruir nações devastadas pela guerra',
+              efeitos: [10, 5, 5],
+              correta: true,
+            },
+            {
+              id: 't3_b',
+              texto: 'Manter cada país com sua própria moeda, sem instituição comum de empréstimo',
+              efeitos: [-10, 0, 0],
+              correta: false,
+              consequencia:
+                'Sem credor comum, as moedas se desvalorizam em cascata e a reconstrução trava.',
+            },
+            {
+              id: 't3_c',
+              texto: 'Criar um banco apenas europeu, sem alcance global',
+              efeitos: [-5, 0, -5],
+              correta: false,
+              consequencia:
+                'Países fora da Europa ficam sem financiamento e a estabilidade não se globaliza.',
+            },
+          ],
+        },
+
+        // TURNO 4 (1950) — tipo: "rotina"
+        {
+          id: 4,
+          ano: 1950,
+          tipo: 'rotina',
+          titulo: 'A reconstrução em curso',
+          texto:
+            'As decisões do Conselho começam a surtir efeito. Fábricas reabrem na Europa, portos voltam a operar e os primeiros acordos comerciais são assinados. Resta ajustar o rumo para o próximo semestre.',
+          opcoes: [
+            {
+              id: 't4_a',
+              texto: 'Reforçar acordos de comércio internacional',
+              efeitos: [6, 0, 0],
+              correta: true,
+            },
+            {
+              id: 't4_b',
+              texto: 'Ampliar programas sociais de reconstrução',
+              efeitos: [0, 6, 0],
+              correta: true,
+            },
+            {
+              id: 't4_c',
+              texto: 'Formar estoques de suprimentos humanitários',
+              efeitos: [0, 0, 6],
+              correta: true,
+            },
+          ],
+        },
+
+        // TURNO 5 (1960) — tipo: "rotina"
+        {
+          id: 5,
+          ano: 1960,
+          tipo: 'rotina',
+          titulo: 'Descolonização',
+          texto:
+            'Uma nova onda de países independentes chega à Assembleia Geral. As novas nações pedem investimento em desenvolvimento, não apenas empréstimos de emergência. O Conselho precisa reequilibrar as prioridades.',
+          opcoes: [
+            {
+              id: 't5_a',
+              texto: 'Créditos para industrialização das novas nações',
+              efeitos: [6, 2, 0],
+              correta: true,
+            },
+            {
+              id: 't5_b',
+              texto: 'Educação e saúde básica em larga escala',
+              efeitos: [0, 6, 2],
+              correta: true,
+            },
+            {
+              id: 't5_c',
+              texto: 'Rede humanitária de resposta rápida',
+              efeitos: [0, 0, 6],
+              correta: true,
+            },
+          ],
+        },
+
+        // TURNO 6 (1970) — tipo: "historica" — DECISÃO HISTÓRICA FIM DO CÂMBIO FIXO
+        {
+          id: 6,
+          ano: 1970,
+          tipo: 'historica',
+          titulo: 'Fim do câmbio fixo',
+          texto:
+            'A pressão sobre o padrão dólar/ouro atinge níveis insustentáveis. Os principais bancos centrais não conseguem mais sustentar a paridade fixa e o Conselho debate a transição do sistema.',
+          piada:
+            '🧑‍💼 Conselheiro: Se mais um país pedir reunião extraordinária, eu mesmo peço asilo à Unesco.',
+          naVidaReal: '📌 Na vida real: na década de 1970, o mundo adotou o câmbio flutuante.',
+          card: {
+            id: 'fim_cambio_fixo',
+            titulo: 'Fim do câmbio fixo',
+            sigla: 'Câmbio Flutuante',
+            texto:
+              'O regime de câmbio fixo durou quase 30 anos. Na década de 1970, adotou-se o câmbio flutuante, utilizado desde então. Câmbio flutuante é um sistema no qual a taxa de câmbio de uma moeda é definida pela oferta e pela demanda de moeda estrangeira no mercado, que variam em função da inflação, da taxa de juros e do crescimento econômico de cada país.',
+          },
+          opcoes: [
+            {
+              id: 't6_a',
+              texto: 'Adotar o câmbio flutuante',
+              efeitos: [10, 0, 0],
+              correta: true,
+            },
+            {
+              id: 't6_b',
+              texto: 'Insistir no câmbio fixo',
+              efeitos: [-10, 0, 0],
+              correta: false,
+              consequencia: 'As reservas se esgotam e a crise de inflação e juros se aprofunda.',
+            },
+            {
+              id: 't6_c',
+              texto: 'Congelar todas as moedas ao dólar sem ajuste',
+              efeitos: [-8, -2, 0],
+              correta: false,
+              consequencia: 'O desequilíbrio comercial explode.',
+            },
+          ],
+        },
+      ]
+
+      /* =========================================================================
+       GERENCIAMENTO DE ESTADO EM MEMÓRIA + LOCALSTORAGE
+       ========================================================================= */
+      const STORAGE_KEY = 'conselho_global_save_v1'
+
+      const INITIAL_STATE = {
+        view: 'intro', // "intro" | "turn" | "consequence" | "phase_end"
+        turnIndex: 0,
+        bars: {
+          econ: 50,
+          dir: 50,
+          hum: 50,
+        },
+        unlockedCardIds: [],
+        // Snapshot para restaurar exatamente caso o jogador erre uma decisão histórica
+        preWrongSnapshot: null,
+        // Opções riscadas por ID do turno: { [turnoId]: [opcaoId, ...] }
+        disabledOptionIds: {},
+        // Se há consequência pendente para renderizar no turno seguinte
+        pendingConsequence: null,
+        // Feedback temporário (ex: "A proposta avança...")
+        feedbackNotice: null,
+        // Estado de bloqueio do card no turno corrente
+        cardOpenBlocking: false,
+      }
+
+      let state = JSON.parse(JSON.stringify(INITIAL_STATE))
+
+      function loadSavedState() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY)
+          if (saved) {
+            const parsed = JSON.parse(saved)
+            if (parsed && typeof parsed.turnIndex === 'number') {
+              return parsed
+            }
+          }
+        } catch (e) {
+          console.warn('Não foi possível ler do localStorage:', e)
+        }
+        return null
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+        } catch (e) {
+          console.warn('Não foi possível salvar no localStorage:', e)
+        }
+      }
+
+      function resetGameProgress() {
+        localStorage.removeItem(STORAGE_KEY)
+        state = JSON.parse(JSON.stringify(INITIAL_STATE))
+        render()
+      }
+
+      /* =========================================================================
+       CONTROLE DAS BARRAS DE STATUS (0 A 100 COM CLAMP E TRANSIÇÃO DE CORES)
+       ≤25 vermelho de alerta; 26–74 cor base; ≥75 tom positivo mais vivo
+       ========================================================================= */
+      function clampBar(val) {
+        return Math.max(0, Math.min(100, Math.round(val)))
+      }
+
+      function getBarColor(type, val) {
+        if (val <= 25) {
+          return 'var(--alert-red)'
+        }
+        if (val >= 75) {
+          if (type === 'econ') return 'var(--bar-econ-high)'
+          if (type === 'dir') return 'var(--bar-dir-high)'
+          if (type === 'hum') return 'var(--bar-hum-high)'
+        }
+        if (type === 'econ') return 'var(--bar-econ-base)'
+        if (type === 'dir') return 'var(--bar-dir-base)'
+        return 'var(--bar-hum-base)'
+      }
+
+      function updateBarsUI() {
+        const econ = clampBar(state.bars.econ)
+        const dir = clampBar(state.bars.dir)
+        const hum = clampBar(state.bars.hum)
+
+        const valEconEl = document.getElementById('valEcon')
+        const valDirEl = document.getElementById('valDir')
+        const valHumEl = document.getElementById('valHum')
+
+        const fillEconEl = document.getElementById('fillEcon')
+        const fillDirEl = document.getElementById('fillDir')
+        const fillHumEl = document.getElementById('fillHum')
+
+        if (valEconEl && fillEconEl) {
+          valEconEl.textContent = econ
+          fillEconEl.style.width = econ + '%'
+          fillEconEl.style.backgroundColor = getBarColor('econ', econ)
+        }
+        if (valDirEl && fillDirEl) {
+          valDirEl.textContent = dir
+          fillDirEl.style.width = dir + '%'
+          fillDirEl.style.backgroundColor = getBarColor('dir', dir)
+        }
+        if (valHumEl && fillHumEl) {
+          valHumEl.textContent = hum
+          fillHumEl.style.width = hum + '%'
+          fillHumEl.style.backgroundColor = getBarColor('hum', hum)
+        }
+
+        // Indicador de turno no topo
+        const turnIndicatorEl = document.getElementById('turnIndicator')
+        if (turnIndicatorEl) {
+          if (state.view === 'intro') {
+            turnIndicatorEl.textContent = 'Preparação do Conselho'
+          } else if (state.view === 'phase_end') {
+            turnIndicatorEl.textContent = 'Fim da Fase 1 — 1970'
+          } else {
+            const currentTurn = TURNOS[state.turnIndex]
+            if (currentTurn) {
+              turnIndicatorEl.textContent = `Turno ${currentTurn.id} — Ano ${currentTurn.ano}`
+            }
+          }
+        }
+
+        // Badge do Arquivo
+        const archiveBadgeEl = document.getElementById('archiveBadge')
+        if (archiveBadgeEl) {
+          archiveBadgeEl.textContent = state.unlockedCardIds.length
+        }
+      }
+
+      /* =========================================================================
+       SISTEMA DE CARDS DE ENCICLOPÉDIA (MODAL BLOQUEANTE)
+       ========================================================================= */
+      const modalEl = document.getElementById('encyclopediaModal')
+      const modalTitleEl = document.getElementById('modalCardTitle')
+      const modalSiglaEl = document.getElementById('modalCardSigla')
+      const modalTextEl = document.getElementById('modalCardText')
+      const modalImgWrapEl = document.getElementById('modalCardImgWrap')
+      const modalCardImgEl = document.getElementById('modalCardImg')
+      const modalCardFallbackEl = document.getElementById('modalCardFallback')
+      const modalFallbackEmojiEl = document.getElementById('modalFallbackEmoji')
+      const modalFallbackCaptionEl = document.getElementById('modalFallbackCaption')
+      const btnCloseCardEl = document.getElementById('btnCloseCard')
+
+      // Impedir fechamento por clique fora ou ESC
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modalEl.style.display !== 'none') {
+          e.preventDefault()
+          e.stopPropagation()
+        }
+      })
+
+      modalEl.addEventListener('click', (e) => {
+        if (e.target === modalEl) {
+          e.preventDefault()
+          e.stopPropagation()
+        }
+      })
+
+      function handleImageError(img) {
+        img.style.display = 'none'
+        if (modalCardFallbackEl) {
+          modalCardFallbackEl.style.display = 'flex'
+        }
+      }
+
+      function openEncyclopediaCard(cardData, isFirstTimeBlocking = false) {
+        if (!cardData) return
+
+        if (!state.unlockedCardIds.includes(cardData.id)) {
+          state.unlockedCardIds.push(cardData.id)
+          saveState()
+          updateBarsUI()
+        }
+
+        modalTitleEl.textContent = cardData.titulo || ''
+        modalSiglaEl.textContent = cardData.sigla || ''
+        modalSiglaEl.style.display = cardData.sigla ? 'block' : 'none'
+        modalTextEl.textContent = cardData.texto || ''
+
+        if (cardData.imagem) {
+          modalImgWrapEl.style.display = 'block'
+          modalCardFallbackEl.style.display = 'none'
+          modalCardImgEl.style.display = 'block'
+          modalCardImgEl.src = cardData.imagem
+          modalFallbackEmojiEl.textContent = cardData.fallbackEmoji || '🏛️'
+          modalFallbackCaptionEl.textContent = cardData.fallbackCaption || cardData.titulo
+        } else {
+          modalImgWrapEl.style.display = 'none'
+        }
+
+        state.cardOpenBlocking = isFirstTimeBlocking
+        modalEl.style.display = 'flex'
+      }
+
+      btnCloseCardEl.addEventListener('click', () => {
+        modalEl.style.display = 'none'
+        if (state.cardOpenBlocking) {
+          state.cardOpenBlocking = false
+          enableChoiceButtons()
+        }
+      })
+
+      function enableChoiceButtons() {
+        const choiceButtons = document.querySelectorAll('.choice-btn')
+        choiceButtons.forEach((btn) => {
+          if (!btn.classList.contains('disabled-wrong')) {
+            btn.removeAttribute('disabled')
+          }
+        })
+      }
+
+      /* =========================================================================
+       SISTEMA DE ARQUIVO
+       ========================================================================= */
+      const archiveModalEl = document.getElementById('archiveModal')
+      const btnOpenArchiveEl = document.getElementById('btnOpenArchive')
+      const btnCloseArchiveEl = document.getElementById('btnCloseArchive')
+      const archiveListContainerEl = document.getElementById('archiveListContainer')
+
+      btnOpenArchiveEl.addEventListener('click', () => {
+        openArchiveModal()
+      })
+
+      btnCloseArchiveEl.addEventListener('click', () => {
+        archiveModalEl.style.display = 'none'
+      })
+
+      archiveModalEl.addEventListener('click', (e) => {
+        if (e.target === archiveModalEl) {
+          archiveModalEl.style.display = 'none'
+        }
+      })
+
+      function findCardById(cardId) {
+        for (const t of TURNOS) {
+          if (t.card && t.card.id === cardId) {
+            return t.card
+          }
+        }
+        return null
+      }
+
+      function openArchiveModal() {
+        archiveListContainerEl.innerHTML = ''
+
+        if (state.unlockedCardIds.length === 0) {
+          archiveListContainerEl.innerHTML = `
+          <div class="archive-empty">
+            Nenhum card de enciclopédia foi desbloqueado ainda. Avance os turnos do Conselho para registrar documentos.
+          </div>
+        `
+        } else {
+          state.unlockedCardIds.forEach((cardId) => {
+            const cardData = findCardById(cardId)
+            if (!cardData) return
+
+            const itemBtn = document.createElement('button')
+            itemBtn.type = 'button'
+            itemBtn.className = 'archive-item-btn'
+            itemBtn.innerHTML = `
+            <div>
+              <div class="archive-item-title">📖 ${escapeHtml(cardData.titulo)}</div>
+              ${cardData.sigla ? `<div class="archive-item-sigla">${escapeHtml(cardData.sigla)}</div>` : ''}
+            </div>
+            <span style="color: var(--gold-brass); font-size: 20px;">→</span>
+          `
+            itemBtn.addEventListener('click', () => {
+              archiveModalEl.style.display = 'none'
+              openEncyclopediaCard(cardData, false)
+            })
+            archiveListContainerEl.appendChild(itemBtn)
+          })
+        }
+
+        archiveModalEl.style.display = 'flex'
+      }
+
+      /* =========================================================================
+       INTERAÇÕES DE JOGO (ESCOLHAS, CONSEQUÊNCIAS E DECISÕES HISTÓRICAS)
+       ========================================================================= */
+      function handleChoiceClick(optionIndex) {
+        const currentTurn = TURNOS[state.turnIndex]
+        if (!currentTurn) return
+
+        const chosenOption = currentTurn.opcoes[optionIndex]
+        if (!chosenOption) return
+
+        // Se for decisão histórica e a escolha for ERRADA:
+        if (currentTurn.tipo === 'historica' && chosenOption.correta === false) {
+          state.preWrongSnapshot = {
+            turnIndex: state.turnIndex,
+            bars: { ...state.bars },
+          }
+
+          state.pendingConsequence = {
+            turnId: currentTurn.id,
+            opcaoId: chosenOption.id,
+            textoConsequencia:
+              chosenOption.consequencia || 'A decisão resultou em instabilidade global severa.',
+            naVidaReal: currentTurn.naVidaReal || '',
+          }
+
+          // Mensagem neutra exigida: "A proposta avança..."
+          state.feedbackNotice = 'A proposta avança...'
+
+          if (chosenOption.efeitos) {
+            state.bars.econ = clampBar(state.bars.econ + chosenOption.efeitos[0])
+            state.bars.dir = clampBar(state.bars.dir + chosenOption.efeitos[1])
+            state.bars.hum = clampBar(state.bars.hum + chosenOption.efeitos[2])
+          }
+
+          state.view = 'consequence'
+          saveState()
+          render()
+          return
+        }
+
+        // Escolha CORRETA:
+        if (chosenOption.efeitos) {
+          state.bars.econ = clampBar(state.bars.econ + chosenOption.efeitos[0])
+          state.bars.dir = clampBar(state.bars.dir + chosenOption.efeitos[1])
+          state.bars.hum = clampBar(state.bars.hum + chosenOption.efeitos[2])
+        }
+
+        state.feedbackNotice = null
+
+        if (state.turnIndex + 1 < TURNOS.length) {
+          state.turnIndex += 1
+          state.view = 'turn'
+          saveState()
+          render()
+
+          checkAndOpenNewTurnCard()
+        } else {
+          state.view = 'phase_end'
+          saveState()
+          render()
+        }
+      }
+
+      function handleGameOverBack() {
+        if (!state.pendingConsequence) return
+
+        const consequenceData = state.pendingConsequence
+
+        if (state.preWrongSnapshot) {
+          state.bars = { ...state.preWrongSnapshot.bars }
+          state.turnIndex = state.preWrongSnapshot.turnIndex
+        }
+
+        if (!state.disabledOptionIds[consequenceData.turnId]) {
+          state.disabledOptionIds[consequenceData.turnId] = []
+        }
+        if (!state.disabledOptionIds[consequenceData.turnId].includes(consequenceData.opcaoId)) {
+          state.disabledOptionIds[consequenceData.turnId].push(consequenceData.opcaoId)
+        }
+
+        state.pendingConsequence = null
+        state.feedbackNotice = null
+        state.preWrongSnapshot = null
+        state.view = 'turn'
+
+        saveState()
+        render()
+      }
+
+      function checkAndOpenNewTurnCard() {
+        const currentTurn = TURNOS[state.turnIndex]
+        if (currentTurn && currentTurn.card) {
+          const isAlreadyUnlocked = state.unlockedCardIds.includes(currentTurn.card.id)
+          if (!isAlreadyUnlocked) {
+            openEncyclopediaCard(currentTurn.card, true)
+          }
+        }
+      }
+
+      /* =========================================================================
+       RENDERIZAÇÃO DAS VIEWS
+       ========================================================================= */
+      const appRoot = document.getElementById('appRoot')
+
+      function render() {
+        updateBarsUI()
+
+        if (state.view === 'intro') {
+          renderIntroView()
+        } else if (state.view === 'turn') {
+          renderTurnView()
+        } else if (state.view === 'consequence') {
+          renderConsequenceView()
+        } else if (state.view === 'phase_end') {
+          renderPhaseEndView()
+        }
+      }
+
+      function renderIntroView() {
+        const saved = loadSavedState()
+        const hasProgress = saved && saved.turnIndex > 0
+
+        appRoot.innerHTML = `
+        <div class="parchment-card intro-card">
+          <div class="intro-emblem" aria-hidden="true">🏛️</div>
+          <h2 class="intro-title">Conselho Global</h2>
+          <div class="intro-subtitle">Coordenador do Conselho Global</div>
+          <p class="intro-text">
+            Você assumiu a coordenação do Conselho Global no momento mais decisivo do século XX.
+            Suas escolhas moldarão a reconstrução do pós-guerra, os direitos humanos e a estabilidade mundial.
+            Tome decisões históricas reais, consulte a enciclopédia das agências e mantenha o equilíbrio das nações.
+          </p>
+          <div class="intro-actions">
+            <button class="btn-primary" id="btnStartGame" type="button" style="font-size: 19px; padding: 15px 36px;">
+              Assumir a Coordenação
+            </button>
+            ${
+              hasProgress
+                ? `
+              <button class="btn-outline" id="btnResetGame" type="button" style="margin-top: 8px;">
+                ↺ Recomeçar do Turno 1
+              </button>
+            `
+                : ''
+            }
+          </div>
+        </div>
+      `
+
+        document.getElementById('btnStartGame').addEventListener('click', () => {
+          state.view = 'turn'
+          saveState()
+          render()
+          checkAndOpenNewTurnCard()
+        })
+
+        const btnReset = document.getElementById('btnResetGame')
+        if (btnReset) {
+          btnReset.addEventListener('click', () => {
+            if (confirm('Deseja realmente apagar o progresso e reiniciar no Turno 1?')) {
+              resetGameProgress()
+            }
+          })
+        }
+      }
+
+      function renderTurnView() {
+        const currentTurn = TURNOS[state.turnIndex]
+        if (!currentTurn) return
+
+        const disabledOptionsForThisTurn = state.disabledOptionIds[currentTurn.id] || []
+        const hasDisabledWrongOptions = disabledOptionsForThisTurn.length > 0
+
+        let badgeTypeClass = 'badge-decision'
+        let badgeTypeLabel = 'Decisão do Conselho'
+        if (currentTurn.tipo === 'historica') {
+          badgeTypeClass = 'badge-historic'
+          badgeTypeLabel = '⭐ Decisão Histórica'
+        } else if (currentTurn.tipo === 'rotina') {
+          badgeTypeClass = 'badge-routine'
+          badgeTypeLabel = 'Ajuste de Governança'
+        }
+
+        const mustBlockInitially =
+          currentTurn.card && !state.unlockedCardIds.includes(currentTurn.card.id)
+
+        let optionsHtml = currentTurn.opcoes
+          .map((opcao, index) => {
+            const isWrongAndDisabled = disabledOptionsForThisTurn.includes(opcao.id)
+
+            let dominantClass = 'dominant-econ'
+            if (opcao.efeitos) {
+              const maxEff = Math.max(...opcao.efeitos)
+              if (opcao.efeitos[1] === maxEff && opcao.efeitos[1] > 0)
+                dominantClass = 'dominant-dir'
+              else if (opcao.efeitos[2] === maxEff && opcao.efeitos[2] > 0)
+                dominantClass = 'dominant-hum'
+            }
+
+            const disabledAttr =
+              isWrongAndDisabled || mustBlockInitially || state.cardOpenBlocking ? 'disabled' : ''
+            const classModifier = isWrongAndDisabled ? 'disabled-wrong' : dominantClass
+
+            return `
+          <button
+            type="button"
+            class="choice-btn ${classModifier}"
+            data-index="${index}"
+            ${disabledAttr}
+          >
+            ${escapeHtml(opcao.texto)}
+          </button>
+        `
+          })
+          .join('')
+
+        appRoot.innerHTML = `
+        ${
+          state.feedbackNotice
+            ? `
+          <div class="feedback-banner">
+            🕊️ ${escapeHtml(state.feedbackNotice)}
+          </div>
+        `
+            : ''
+        }
+
+        <div class="parchment-card event-card">
+          <div class="event-type-badge ${badgeTypeClass}">
+            ${badgeTypeLabel}
+          </div>
+
+          <h2 class="event-title">${escapeHtml(currentTurn.titulo)}</h2>
+
+          <!-- CLAMP CSS DE 4 LINHAS -->
+          <div class="event-narrative">
+            ${escapeHtml(currentTurn.texto)}
+          </div>
+
+          <!-- LINHA "NA VIDA REAL" (SURGE APÓS VOLTAR DA CONSEQUÊNCIA) -->
+          ${
+            hasDisabledWrongOptions && currentTurn.naVidaReal
+              ? `
+            <div class="real-life-notice">
+              ${escapeHtml(currentTurn.naVidaReal)}
+            </div>
+          `
+              : ''
+          }
+
+          <!-- FALA DO CONSELHEIRO (PIADA LEVE EXATA) -->
+          ${
+            currentTurn.piada
+              ? `
+            <div class="counselor-quote">
+              ${escapeHtml(currentTurn.piada)}
+            </div>
+          `
+              : ''
+          }
+
+          <!-- ÁREA DE ESCOLHAS -->
+          <div class="choices-title">Opções em Votação no Plenário</div>
+          <div class="choices-list" id="choicesListContainer">
+            ${optionsHtml}
+          </div>
+        </div>
+      `
+
+        const buttons = appRoot.querySelectorAll('.choice-btn')
+        buttons.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const idx = parseInt(btn.getAttribute('data-index'), 10)
+            handleChoiceClick(idx)
+          })
+        })
+      }
+
+      function renderConsequenceView() {
+        const consequenceData = state.pendingConsequence
+        const consequenceText = consequenceData
+          ? consequenceData.textoConsequencia
+          : 'A proposta não atingiu os resultados esperados.'
+
+        appRoot.innerHTML = `
+        <div class="consequence-wrapper">
+          <div class="consequence-badge">⚠️ Desdobramento Negativo</div>
+          <h2 class="consequence-title">Consequência</h2>
+          <p class="consequence-text">
+            ${escapeHtml(consequenceText)}
+          </p>
+          <div>
+            <button class="btn-gameover" id="btnGameOverBack" type="button">
+              Game Over — Voltar à decisão
+            </button>
+          </div>
+        </div>
+      `
+
+        document.getElementById('btnGameOverBack').addEventListener('click', () => {
+          handleGameOverBack()
+        })
+      }
+
+      function renderPhaseEndView() {
+        appRoot.innerHTML = `
+        <div class="parchment-card phase-end-card">
+          <div class="phase-end-emblem" aria-hidden="true">🕊️</div>
+          <h2 class="phase-end-title">Fim da Fase 1</h2>
+          <p class="phase-end-sub">
+            De Bretton Woods ao câmbio flutuante: 26 anos de decisões que moldaram a economia mundial.
+          </p>
+
+          <div class="bars-summary">
+            <h3 style="font-size: 17px; font-weight: 700; color: #0A1A2F; margin-bottom: 12px; border-bottom: 2px solid var(--parchment-border); padding-bottom: 6px;">
+              Balanço Final da Gestão (1944–1970)
+            </h3>
+            <div class="summary-row">
+              <span style="color: var(--bar-econ-base); font-weight: 700;">Estabilidade Econômica</span>
+              <span style="font-weight: 800;">${clampBar(state.bars.econ)} / 100</span>
+            </div>
+            <div class="summary-row">
+              <span style="color: var(--bar-dir-base); font-weight: 700;">Direitos Humanos & Desenv.</span>
+              <span style="font-weight: 800;">${clampBar(state.bars.dir)} / 100</span>
+            </div>
+            <div class="summary-row">
+              <span style="color: var(--bar-hum-base); font-weight: 700;">Capacidade Humanitária</span>
+              <span style="font-weight: 800;">${clampBar(state.bars.hum)} / 100</span>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+            <button class="btn-primary" id="btnPhase1Continue" type="button" style="font-size: 18px; padding: 14px 32px;">
+              Continuar
+            </button>
+            <div id="phase2Toast" style="display: none; background: #0A1A2F; color: var(--gold-soft); padding: 10px 20px; border-radius: 8px; border: 1px solid var(--gold-brass); font-weight: 600; font-size: 15px;">
+              A Fase 2 vem a seguir.
+            </div>
+            <button class="btn-outline" id="btnRestartAll" type="button" style="margin-top: 10px;">
+              Jogar Novamente do Início
+            </button>
+          </div>
+        </div>
+      `
+
+        const btnContinue = document.getElementById('btnPhase1Continue')
+        const toastEl = document.getElementById('phase2Toast')
+        btnContinue.addEventListener('click', () => {
+          toastEl.style.display = 'block'
+          btnContinue.textContent = 'A Fase 2 vem a seguir.'
+        })
+
+        document.getElementById('btnRestartAll').addEventListener('click', () => {
+          resetGameProgress()
+        })
+      }
+
+      /* =========================================================================
+       UTILITÁRIOS
+       ========================================================================= */
+      function escapeHtml(str) {
+        if (!str) return ''
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;')
+      }
+
+      /* =========================================================================
+       INICIALIZAÇÃO
+       ========================================================================= */
+      function init() {
+        const saved = loadSavedState()
+        if (saved) {
+          state = { ...INITIAL_STATE, ...saved }
+        }
+        render()
+      }
+
+      init()
+    </script>
+  </body>
+</html>
