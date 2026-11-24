@@ -845,6 +845,85 @@
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
       }
 
+      /* CONTADOR DE DECISÕES HISTÓRICAS (TOPO) */
+      .historic-counter {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: #e2e8f0;
+        padding: 6px 12px;
+        border-radius: 9999px;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      /* BLOCO "O QUE VOCÊ ESTUDOU NESTE JOGO" (TELAS FINAIS) */
+      .study-block {
+        background: #ffffff;
+        border: 1px solid var(--parchment-border);
+        border-radius: 10px;
+        padding: 20px 22px;
+        max-width: 680px;
+        margin: 0 auto 22px auto;
+        text-align: left;
+      }
+
+      .study-title {
+        font-size: 17px;
+        font-weight: 800;
+        color: #0a1a2f;
+        margin-bottom: 12px;
+        border-bottom: 2px solid var(--parchment-border);
+        padding-bottom: 6px;
+      }
+
+      .study-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .study-list li {
+        position: relative;
+        padding-left: 20px;
+        font-size: 15.5px;
+        line-height: 1.5;
+        color: #2d3d4e;
+      }
+
+      .study-list li::before {
+        content: '•';
+        position: absolute;
+        left: 4px;
+        color: var(--gold-brass);
+        font-weight: 800;
+      }
+
+      .study-empty {
+        font-style: italic;
+        color: #718096;
+        font-size: 15px;
+      }
+
+      /* RODAPÉ DO MODAL DE CONFIRMAÇÃO */
+      .confirm-footer {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+      }
+
+      /* ESTATÍSTICAS DA TELA FINAL */
+      .endgame-stats {
+        background: #ffffff;
+        border: 1px solid var(--parchment-border);
+        border-radius: 10px;
+        padding: 20px;
+        max-width: 520px;
+        margin: 0 auto 22px auto;
+        text-align: left;
+      }
+
       /* ANIMAÇÕES */
       @keyframes fadeUp {
         from {
@@ -1057,6 +1136,9 @@
           </div>
 
           <div class="turn-badge-wrap">
+            <div class="historic-counter" id="historicCounter">
+              Decisões históricas acertadas: 0/6
+            </div>
             <div class="turn-indicator" id="turnIndicator">Turno 1 — Ano 1944</div>
             <button
               class="btn-archive"
@@ -1175,6 +1257,29 @@
       </div>
     </div>
 
+    <!-- MODAL DE CONFIRMAÇÃO DE REINÍCIO (sem window.confirm) -->
+    <div
+      class="modal-backdrop"
+      id="confirmModal"
+      style="display: none"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirmModalTitle"
+    >
+      <div class="modal-content">
+        <div class="encyclopedia-stamp">⚠️ Confirmação</div>
+        <h2 class="modal-card-title" id="confirmModalTitle">Reiniciar jogo</h2>
+        <p class="modal-card-text">
+          Deseja realmente apagar todo o progresso e voltar ao Turno 1? Esta ação não pode ser
+          desfeita.
+        </p>
+        <div class="modal-footer confirm-footer">
+          <button class="btn-outline" id="btnCancelReset" type="button">Cancelar</button>
+          <button class="btn-gameover" id="btnConfirmReset" type="button">Reiniciar jogo</button>
+        </div>
+      </div>
+    </div>
+
     <script>
       /* =========================================================================
        CONSTANTES DE IMAGENS PÚBLICAS DO WIKIMEDIA COMMONS
@@ -1203,6 +1308,11 @@
           url: 'https://upload.wikimedia.org/wikipedia/commons/9/93/Wien_-_Hofburgburg_-_Heldenplatz.JPG',
           emoji: '🤝',
           caption: 'Hofburg, Viena — sede da Conferência Mundial de Direitos Humanos (1993)',
+        },
+        acnurOnu: {
+          url: 'https://upload.wikimedia.org/wikipedia/commons/9/9d/United_Nations_Headquarters_-_New_York_City.jpg',
+          emoji: '🕊️',
+          caption: 'Sede da ONU em Nova York — Alto Comissariado das Nações Unidas para Refugiados',
         },
         indigenas2014: {
           url: 'https://upload.wikimedia.org/wikipedia/commons/9/9d/United_Nations_Headquarters_-_New_York_City.jpg',
@@ -1335,6 +1445,247 @@
           endBalanceTitle: 'Balanço da Gestão (1993–2015)',
           proximaAviso: 'A Fase 4 vem a seguir.',
           turnos: [],
+        },
+        {
+          id: 4,
+          titulo: 'Fase 4',
+          endTitle: 'Fim da Fase 4',
+          endSubtitle:
+            'Da crise global de refugiados à consolidação: o Conselho fechou o ciclo 2024–2030 das decisões globais.',
+          endBalanceTitle: 'Balanço da Gestão (2024–2030)',
+          proximaAviso: '',
+          turnos: [],
+        },
+      ]
+
+      /* =========================================================================
+      Turnos da FASE 4 — O DESAFIO FINAL: A CRISE GLOBAL DE REFUGIADOS (2024–2030)
+      IMPORTANTE: sem cronômetro e sem decisão por tempo nesta fase —
+      todas as escolhas seguem o padrão bloqueante das demais.
+      ========================================================================= */
+      const TURNOS_FASE_4 = [
+        // FASE 4 — TURNO 1 (2024) — tipo: "decisão" — Card "Crise dos Refugiados"
+        {
+          id: 17,
+          ano: 2024,
+          tipo: 'decisao',
+          titulo: 'Onde alocar o orçamento da crise global?',
+          texto:
+            'A crise global de refugiados chega ao plenário do Conselho. O orçamento é limitado e cada foco escolhido define o rumo da resposta internacional.',
+          piada:
+            '🧑‍💼 Conselheiro: 120 milhões de deslocados e um único orçamento. O café de hoje será bem amargo.',
+          card: {
+            id: 'crise_refugiados',
+            titulo: 'Crise dos Refugiados',
+            sigla: 'O Desafio Final (2024)',
+            texto:
+              'Em 2024, mais de 120 milhões de pessoas viviam fora de suas residências devido a conflitos armados, violência e violação dos direitos humanos. Mais da metade dos refugiados tem menos de 18 anos e tem origem em países como o Sudão, a Síria, o Afeganistão e a Ucrânia. Os países que mais acolhem são a Alemanha, a Turquia e o Paquistão. O Brasil tem um número crescente de refugiados da Venezuela, de Cuba e de Angola. Nos últimos dez anos o número de refugiados praticamente dobrou.',
+          },
+          opcoes: [
+            {
+              id: 't17_a',
+              texto: 'Priorizar acolhimento emergencial nos países de primeira linha',
+              efeitos: [0, 5, 7],
+              correta: true,
+            },
+            {
+              id: 't17_b',
+              texto: 'Financiar programas de integração nos países de destino',
+              efeitos: [3, 6, 0],
+              correta: true,
+            },
+            {
+              id: 't17_c',
+              texto: 'Investir em causas raiz nos países de origem',
+              efeitos: [5, 4, 0],
+              correta: true,
+            },
+          ],
+        },
+
+        // FASE 4 — TURNO 2 (2025) — tipo: "decisão" — Card "ACNUR"
+        {
+          id: 18,
+          ano: 2025,
+          tipo: 'decisao',
+          titulo: 'Distribuir recursos entre os focos de crise',
+          texto:
+            'Os relatórios do ACNUR apontam quatro focos críticos ao mesmo tempo. O Conselho precisa decidir como distribuir os recursos limitados entre eles.',
+          piada:
+            '🧑‍💼 Conselheiro: Quatro crises, uma planilha. Eu já peço mais café e menos planilha.',
+          card: {
+            id: 'acnur',
+            titulo: 'ACNUR',
+            sigla: 'Alto Comissariado das Nações Unidas para Refugiados',
+            imagem: WIKIMEDIA_IMAGES.acnurOnu.url,
+            fallbackEmoji: WIKIMEDIA_IMAGES.acnurOnu.emoji,
+            fallbackCaption: WIKIMEDIA_IMAGES.acnurOnu.caption,
+            texto:
+              'O ACNUR é uma entidade da ONU, presente em 135 países e territórios, responsável por oferecer assistência e proteção aos refugiados que abandonaram tudo para salvar a própria vida. Em 2024, o Sudão do Sul se tornou o país com o maior número de refugiados e deslocados internos (14,3 milhões), superando a Síria (13,5 milhões), o Afeganistão (10,3 milhões) e a Ucrânia (8,8 milhões).',
+          },
+          opcoes: [
+            {
+              id: 't18_a',
+              texto: 'Concentrar recursos no Sudão do Sul, o foco mais crítico',
+              efeitos: [0, 4, 7],
+              correta: true,
+            },
+            {
+              id: 't18_b',
+              texto: 'Distribuir igualmente entre os quatro focos de crise',
+              efeitos: [3, 4, 4],
+              correta: true,
+            },
+            {
+              id: 't18_c',
+              texto: 'Priorizar quem mais acolhe, como Alemanha, Turquia e Paquistão',
+              efeitos: [5, 3, 0],
+              correta: true,
+            },
+          ],
+        },
+
+        // FASE 4 — TURNO 3 (2026) — tipo: "decisão" — Card "Kutupalong"
+        {
+          id: 19,
+          ano: 2026,
+          tipo: 'decisao',
+          titulo: 'Como lidar com a superlotação de Kutupalong?',
+          texto:
+            'O maior campo de refugiados do mundo está superlotado e as condições pioram a cada temporada de chuvas. O Conselho precisa decidir como responder.',
+          piada:
+            '🧑‍💼 Conselheiro: 800 mil pessoas num espaço feito para muito menos. A pauta é pesada; a solução, urgente.',
+          card: {
+            id: 'kutupalong',
+            titulo: 'Kutupalong',
+            sigla: "Cox's Bazar, Bangladesh",
+            imagem: WIKIMEDIA_IMAGES.kutupalong.url,
+            fallbackEmoji: WIKIMEDIA_IMAGES.kutupalong.emoji,
+            fallbackCaption: WIKIMEDIA_IMAGES.kutupalong.caption,
+            texto:
+              "Kutupalong, localizado no distrito costeiro de Cox's Bazar, é atualmente o maior campo de refugiados do mundo. O chamado megacampo abriga cerca de 800 mil refugiados, predominantemente rohingyas, que fugiram da perseguição que sofriam em Mianmar, onde eram desprezados e considerados intrusos.",
+          },
+          opcoes: [
+            {
+              id: 't19_a',
+              texto: 'Expandir infraestrutura e serviços básicos do megacampo',
+              efeitos: [0, 6, 6],
+              correta: true,
+            },
+            {
+              id: 't19_b',
+              texto: 'Reassentamento gradual em outras regiões e países',
+              efeitos: [3, 5, 3],
+              correta: true,
+            },
+            {
+              id: 't19_c',
+              texto: 'Negociar repatriação segura e voluntária com Mianmar',
+              efeitos: [2, 5, 0],
+              correta: true,
+            },
+          ],
+        },
+
+        // FASE 4 — TURNO 4 (2027) — tipo: "decisão" — Card "Apátridas"
+        {
+          id: 20,
+          ano: 2027,
+          tipo: 'decisao',
+          titulo: 'Criar política de regularização dos apátridas',
+          texto:
+            'Millions seguem sem nacionalidade reconhecida em vários continentes. O Conselho debate uma política global de regularização.',
+          piada:
+            '🧑‍💼 Conselheiro: Nascer sem país é a única crise que a burocracia não inventou — mas pode resolver.',
+          card: {
+            id: 'apatridas',
+            titulo: 'Apátridas',
+            sigla: 'Pessoas sem nacionalidade',
+            texto:
+              'Além dos refugiados, há também milhões de apátridas: pessoas que tiveram a nacionalidade negada e que não têm direitos básicos, como saúde, educação, liberdade e emprego.',
+          },
+          opcoes: [
+            {
+              id: 't20_a',
+              texto: 'Campanha global de registro civil universal',
+              efeitos: [0, 7, 2],
+              correta: true,
+            },
+            {
+              id: 't20_b',
+              texto: 'Tratado de regularização com acesso a direitos básicos',
+              efeitos: [2, 6, 0],
+              correta: true,
+            },
+            {
+              id: 't20_c',
+              texto: 'Fundos para documentação e assistência jurídica',
+              efeitos: [3, 4, 2],
+              correta: true,
+            },
+          ],
+        },
+
+        // FASE 4 — TURNO 5 (2029) — tipo: "rotina" — Pressão sobre os países de acolhimento
+        {
+          id: 21,
+          ano: 2029,
+          tipo: 'rotina',
+          titulo: 'Pressão sobre os países de acolhimento',
+          texto:
+            'Os países que mais acolhem refugiados pedem reforço. Sem apoio, o risco é fecharem suas fronteiras. O Conselho ajusta o rumo da governança.',
+          opcoes: [
+            {
+              id: 't21_a',
+              texto: 'Reforçar financiamento direto aos países de acolhimento',
+              efeitos: [4, 2, 6],
+              correta: true,
+            },
+            {
+              id: 't21_b',
+              texto: 'Criar cotas de redistribuição entre regiões',
+              efeitos: [2, 5, 3],
+              correta: true,
+            },
+            {
+              id: 't21_c',
+              texto: 'Programas de desenvolvimento nas regiões de fronteira',
+              efeitos: [3, 4, 0],
+              correta: true,
+            },
+          ],
+        },
+
+        // FASE 4 — TURNO 6 (2030) — tipo: "decisão" — FECHAMENTO (VITÓRIA/DERROTA AQUI)
+        {
+          id: 22,
+          ano: 2030,
+          tipo: 'decisao',
+          titulo: 'Consolidação do legado global',
+          texto:
+            'O ciclo 2024–2030 se fecha. O Conselho decide como consolidar o sistema global de proteção construído desde 1944.',
+          piada:
+            '🧑‍💼 Conselheiro: De Bretton Woods a 2030. O anexo continua com 400 páginas — mas agora todo mundo leu.',
+          opcoes: [
+            {
+              id: 't22_a',
+              texto: 'Tornar permanentes os mecanismos de proteção aos refugiados',
+              efeitos: [5, 6, 5],
+              correta: true,
+            },
+            {
+              id: 't22_b',
+              texto: 'Integrar refugiados e apátridas às agendas nacionais de desenvolvimento',
+              efeitos: [3, 6, 3],
+              correta: true,
+            },
+            {
+              id: 't22_c',
+              texto: 'Fixar metas de longo prazo com financiamento garantido',
+              efeitos: [6, 3, 4],
+              correta: true,
+            },
+          ],
         },
       ]
 
@@ -1976,14 +2327,19 @@
       FASES[0].turnos = TURNOS.slice()
       FASES[1].turnos = TURNOS_FASE_2.slice()
       FASES[2].turnos = TURNOS_FASE_3.slice()
+      FASES[3].turnos = TURNOS_FASE_4.slice()
 
       /* Junta todos os turnos (motor continua iterando um único array) */
-      const TODOS_TURNOS = [...TURNOS, ...TURNOS_FASE_2, ...TURNOS_FASE_3]
+      const TODOS_TURNOS = [...TURNOS, ...TURNOS_FASE_2, ...TURNOS_FASE_3, ...TURNOS_FASE_4]
+
+      /* Total real de cards de enciclopédia do jogo completo (Fases 1–4) */
+      const TOTAL_CARDS = TODOS_TURNOS.filter((t) => t.card).length
 
       function getPhaseOfTurn(turnIndex) {
         if (turnIndex < TURNOS.length) return 1
         if (turnIndex < TURNOS.length + TURNOS_FASE_2.length) return 2
-        return 3
+        if (turnIndex < TURNOS.length + TURNOS_FASE_2.length + TURNOS_FASE_3.length) return 3
+        return 4
       }
 
       /* =========================================================================
@@ -2010,11 +2366,17 @@
         feedbackNotice: null,
         // Estado de bloqueio do card no turno corrente
         cardOpenBlocking: false,
-        // Fase corrente (1, 2 ou 3) e flag da tela de fim de fase
+        // Fase corrente (1, 2, 3 ou 4) e flag da tela de fim de fase
         faseAtual: 1,
         // Piada dos 169 objetivos (turno 2015 — Fase 3): etapa atual
         // ('aguardando' | 'rodando' | 'fala' | 'concluido')
         obj169Stage: 'aguardando',
+        // Tela final: 'none' | 'vitoria_plena' | 'vitoria_parcial' | 'colapso'
+        endgame: 'none',
+        // Turnos jogados na partida (para a tela final)
+        turnosJogados: 0,
+        // Decisões históricas acertadas de primeira (contador discreto no topo)
+        historicHits: 0,
       }
 
       let state = JSON.parse(JSON.stringify(INITIAL_STATE))
@@ -2111,6 +2473,8 @@
               ? turnosDaFase[turnosDaFase.length - 1].ano
               : ''
             turnIndicatorEl.textContent = `Fim da Fase ${state.faseAtual} — ${anoFimDaFase}`
+          } else if (state.view === 'endgame') {
+            turnIndicatorEl.textContent = 'Fim de Jogo'
           } else {
             const currentTurn = TODOS_TURNOS[state.turnIndex]
             if (currentTurn) {
@@ -2123,6 +2487,63 @@
         const archiveBadgeEl = document.getElementById('archiveBadge')
         if (archiveBadgeEl) {
           archiveBadgeEl.textContent = state.unlockedCardIds.length
+        }
+
+        // Contador discreto de decisões históricas acertadas
+        const historicCounterEl = document.getElementById('historicCounter')
+        if (historicCounterEl) {
+          historicCounterEl.textContent = `Decisões históricas acertadas: ${state.historicHits}/${TOTAL_HISTORICAS}`
+          historicCounterEl.style.display =
+            state.view === 'intro' || state.view === 'endgame' ? 'none' : 'inline-flex'
+        }
+      }
+
+      /* =========================================================================
+       SISTEMA DE FIM DE JOGO — TRÊS DESFECHOS
+       - DERROTA: qualquer barra chega a 0 em qualquer momento
+       - VITÓRIA PLENA: chegar a 2030 com as três barras >= 60
+       - VITÓRIA PARCIAL: chegar a 2030 sem barra zerada, mas com alguma < 60
+      ========================================================================= */
+      function checkDefeat() {
+        return state.bars.econ <= 0 || state.bars.dir <= 0 || state.bars.hum <= 0
+      }
+
+      function finishGame() {
+        if (checkDefeat()) {
+          state.endgame = 'colapso'
+        } else if (state.bars.econ >= 60 && state.bars.dir >= 60 && state.bars.hum >= 60) {
+          state.endgame = 'vitoria_plena'
+        } else {
+          state.endgame = 'vitoria_parcial'
+        }
+        state.view = 'endgame'
+        saveState()
+        render()
+      }
+
+      /* Voltar ao último turno após o colapso: restaura o snapshot anterior
+      à queda (barras + índice), preservando a regra de voltar à decisão
+      nas decisões históricas. */
+      function handleCollapseBack() {
+        if (state.preCollapseSnapshot) {
+          state.bars = { ...state.preCollapseSnapshot.bars }
+          state.turnIndex = state.preCollapseSnapshot.turnIndex
+          state.faseAtual = state.preCollapseSnapshot.faseAtual
+          state.preCollapseSnapshot = null
+        } else {
+          // Sem snapshot (ex.: barras zeradas por save antigo): volta ao turno 1
+          state.turnIndex = 0
+          state.faseAtual = 1
+          state.bars = { econ: 50, dir: 50, hum: 50 }
+        }
+        state.endgame = 'none'
+        state.view = 'turn'
+        saveState()
+        render()
+        // Reabrir o card do turno (já desbloqueado) sem bloquear
+        const turnoAtual = TODOS_TURNOS[state.turnIndex]
+        if (turnoAtual && turnoAtual.card) {
+          openEncyclopediaCard(turnoAtual.card, false)
         }
       }
 
