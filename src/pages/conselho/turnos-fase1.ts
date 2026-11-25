@@ -2,6 +2,7 @@ import type { FaseInfo, TurnoData } from './dados-base'
 import { WIKIMEDIA_IMAGES } from './dados-base'
 import { TURNOS_FASE_2 } from './turnos-fase2'
 import { TURNOS_FASE_3 } from './turnos-fase3'
+import { TURNOS_FASE_4 } from './turnos-fase4'
 
 /* Turnos da FASE 1 — 1944–1970 (textos verbatim do conselho-global.html) */
 export const TURNOS_FASE_1: TurnoData[] = [
@@ -232,7 +233,7 @@ export const TURNOS_FASE_1: TurnoData[] = [
   },
 ]
 
-/* Estrutura de fases — Fase 1 (1944–1970), Fase 2 (1990–2001), Fase 3 (1993–2015) */
+/* Estrutura de fases — Fase 1 (1944–1970), Fase 2 (1990–2001), Fase 3 (1993–2015), Fase 4 (2024–2030) */
 export const FASES: FaseInfo[] = [
   {
     id: 1,
@@ -263,5 +264,15 @@ export const FASES: FaseInfo[] = [
     endBalanceTitle: 'Balanço da Gestão (1993–2015)',
     proximaAviso: 'A Fase 4 vem a seguir.',
     turnos: TURNOS_FASE_3,
+  },
+  {
+    id: 4,
+    titulo: 'Fase 4',
+    endTitle: 'Fim da Fase 4',
+    endSubtitle:
+      'Da crise global de refugiados à consolidação: o Conselho fechou o ciclo 2024–2030 das decisões globais.',
+    endBalanceTitle: 'Balanço da Gestão (2024–2030)',
+    proximaAviso: '',
+    turnos: TURNOS_FASE_4,
   },
 ]
