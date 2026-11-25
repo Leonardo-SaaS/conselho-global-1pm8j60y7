@@ -2335,6 +2335,10 @@
       /* Total real de cards de enciclopédia do jogo completo (Fases 1–4) */
       const TOTAL_CARDS = TODOS_TURNOS.filter((t) => t.card).length
 
+      /* Total de decisões marcadas como históricas no jogo completo
+      (Bretton Woods, Rodada de Doha, Agenda 2030, Fim do câmbio fixo) */
+      const TOTAL_HISTORICAS = TODOS_TURNOS.filter((t) => t.tipo === 'historica').length
+
       function getPhaseOfTurn(turnIndex) {
         if (turnIndex < TURNOS.length) return 1
         if (turnIndex < TURNOS.length + TURNOS_FASE_2.length) return 2
@@ -2358,6 +2362,10 @@
         unlockedCardIds: [],
         // Snapshot para restaurar exatamente caso o jogador erre uma decisão histórica
         preWrongSnapshot: null,
+        // Snapshot anterior ao colapso (botão "Voltar ao último turno")
+        preCollapseSnapshot: null,
+        // IDs das decisões históricas já acertadas (contador discreto do topo)
+        historicAnsweredIds: [],
         // Opções riscadas por ID do turno: { [turnoId]: [opcaoId, ...] }
         disabledOptionIds: {},
         // Se há consequência pendente para renderizar no turno seguinte
@@ -2743,6 +2751,17 @@
             state.bars.hum = clampBar(state.bars.hum + chosenOption.efeitos[2])
           }
 
+          // 4.5 DERROTA: barra zerada com a opção errada → tela de colapso
+          if (checkDefeat()) {
+            state.preCollapseSnapshot = {
+              turnIndex: state.preWrongSnapshot.turnIndex,
+              faseAtual: getPhaseOfTurn(state.preWrongSnapshot.turnIndex),
+              bars: { ...state.preWrongSnapshot.bars },
+            }
+            finishGame()
+            return
+          }
+
           // 5. Segue para a visualização da tela de consequência no próximo turno
           // Importante: a consequência interrompe o turno seguinte (o contador não avança permanentemente)
           state.view = 'consequence'
@@ -2752,7 +2771,25 @@
         }
 
         // Escolha CORRETA (ou decisão comum / rotina):
-        // Aplicar efeitos
+        // 1. Snapshot das barras ANTES de aplicar efeitos (para o botão
+        //    "Voltar ao último turno" caso alguma barra chegue a 0)
+        const preChoiceSnapshot = {
+          turnIndex: state.turnIndex,
+          faseAtual: state.faseAtual,
+          bars: { ...state.bars },
+        }
+
+        // 2. Contabilizar decisões históricas acertadas (contador do topo)
+        if (
+          currentTurn.tipo === 'historica' &&
+          chosenOption.correta !== false &&
+          !state.historicAnsweredIds.includes(currentTurn.id)
+        ) {
+          state.historicAnsweredIds.push(currentTurn.id)
+          state.historicHits += 1
+        }
+
+        // 3. Aplicar efeitos
         if (chosenOption.efeitos) {
           state.bars.econ = clampBar(state.bars.econ + chosenOption.efeitos[0])
           state.bars.dir = clampBar(state.bars.dir + chosenOption.efeitos[1])
@@ -2760,23 +2797,39 @@
         }
 
         state.feedbackNotice = null
+        state.turnosJogados = Math.max(state.turnosJogados, state.turnIndex + 1)
 
-        // Avançar para o próximo turno ou finalizar a fase corrente
-        if (state.turnIndex + 1 < TODOS_TURNOS.length) {
-          state.turnIndex += 1
-          state.view = 'turn'
-          saveState()
-          render()
-
-          // Checar se o novo turno tem card inédito
-          checkAndOpenNewTurnCard()
-        } else {
-          // Fim de fase (1, 2 ou 3)
-          state.view = 'phase_end'
-          state.faseAtual = getPhaseOfTurn(state.turnIndex)
-          saveState()
-          render()
+        // 4. DERROTA: qualquer barra a 0 em qualquer momento → colapso
+        if (checkDefeat()) {
+          state.preCollapseSnapshot = preChoiceSnapshot
+          finishGame()
+          return
         }
+
+        // 5. Avançar: próximo turno, fim de fase ou fim de jogo (2030)
+        const nextIndex = state.turnIndex + 1
+        if (nextIndex >= TODOS_TURNOS.length) {
+          // Fim da Fase 4 (turno 22 — consolidação 2030): desfecho final
+          finishGame()
+          return
+        }
+
+        const nextPhase = getPhaseOfTurn(nextIndex)
+        if (nextPhase !== state.faseAtual) {
+          // Fim da fase corrente (1, 2 ou 3)
+          state.view = 'phase_end'
+          saveState()
+          render()
+          return
+        }
+
+        state.turnIndex = nextIndex
+        state.view = 'turn'
+        saveState()
+        render()
+
+        // Checar se o novo turno tem card inédito
+        checkAndOpenNewTurnCard()
       }
 
       /* Ao clicar em "Game Over — Voltar à decisão":
@@ -2870,6 +2923,8 @@
           renderConsequenceView()
         } else if (state.view === 'phase_end') {
           renderPhaseEndView()
+        } else if (state.view === 'endgame') {
+          renderEndgameView()
         }
       }
 
@@ -2882,7 +2937,7 @@
         <div class="parchment-card intro-card">
           <div class="intro-emblem" aria-hidden="true">🏛️</div>
           <h2 class="intro-title">Conselho Global</h2>
-          <div class="intro-subtitle">Coordenador do Conselho Global</div>
+          <div class="intro-subtitle">Você é o Coordenador. As decisões são reais.</div>
           <p class="intro-text">
             Você assumiu a coordenação do Conselho Global no momento mais decisivo do século XX.
             Suas escolhas moldarão a reconstrução do pós-guerra, os direitos humanos e a estabilidade mundial.
@@ -2890,7 +2945,7 @@
           </p>
           <div class="intro-actions">
             <button class="btn-primary" id="btnStartGame" type="button" style="font-size: 19px; padding: 15px 36px;">
-              Assumir a Coordenação
+              Começar
             </button>
             ${
               hasProgress
@@ -2916,9 +2971,7 @@
         const btnReset = document.getElementById('btnResetGame')
         if (btnReset) {
           btnReset.addEventListener('click', () => {
-            if (confirm('Deseja realmente apagar o progresso e reiniciar no Turno 1?')) {
-              resetGameProgress()
-            }
+            openResetConfirm()
           })
         }
       }
@@ -3182,9 +3235,152 @@
         }
 
         document.getElementById('btnRestartAll').addEventListener('click', () => {
-          resetGameProgress()
+          openResetConfirm()
         })
       }
+
+      /* =========================================================================
+       TELA FINAL — BLOCO DE ESTUDO (12 BULLETS, VERBATIM)
+       ========================================================================= */
+      const ESTUDO_BULLETS = [
+        'O Sistema das Nações Unidas reúne 15 agências especializadas, 7 organizações relacionadas e diversos fundos e programas, coordenados pelo Ecosoc, com orçamento próprio vindo de contribuições.',
+        'FAO, OMS, Unesco e OIT são agências com grande impacto na defesa dos Direitos Humanos no dia a dia.',
+        'A Conferência de Bretton Woods (1944) criou o FMI e o Bird (Banco Mundial) e adotou o padrão dólar/ouro, com o objetivo de garantir estabilidade econômica como base da paz.',
+        'O câmbio fixo durou quase 30 anos; na década de 1970 passou-se ao câmbio flutuante, definido pela oferta e demanda de moeda estrangeira.',
+        'Unicef, Pnud e ACNUR não são agências, mas programas e fundos com autonomia financeira e administrativa.',
+        'A OMC substituiu o GATT em 1995 e regula o comércio global por meio de rodadas de negociação.',
+        'A Rodada de Doha (2001) travou no impasse entre abertura industrial e abertura agrícola, com o SSM como ponto central de divergência.',
+        'A ONU realizou conferências sobre Direitos Humanos: Viena (1993), as Conferências sobre as Mulheres, Povos Indígenas (2014) e a Cimeira de Nova York (2015).',
+        'A Agenda 2030 definiu 17 ODS e 169 metas a serem atingidas até 2030.',
+        'Em 2024, mais de 120 milhões de pessoas estavam deslocadas; mais da metade tem menos de 18 anos.',
+        "O ACNUR atua em 135 países; Kutupalong, em Cox's Bazar, é o maior campo de refugiados do mundo, com cerca de 800 mil rohingyas.",
+        'Apátridas são pessoas sem nacionalidade, sem acesso a direitos básicos como saúde, educação e emprego.',
+      ]
+
+      // 5. TELA FINAL (os três desfechos)
+      function renderEndgameView() {
+        const isColapso = state.endgame === 'colapso'
+        let emblem = '🏆'
+        let title = 'Vitória Plena — 2030'
+        let subtitle =
+          'As três barras terminaram acima de 60: estabilidade econômica, direitos humanos e capacidade humanitária garantidos até 2030.'
+        if (isColapso) {
+          emblem = '📉'
+          title = 'Colapso do Conselho'
+          subtitle =
+            'Uma das barras de equilíbrio chegou a zero e o sistema global não resistiu. Mas toda decisão pode ser refeita.'
+        } else if (state.endgame === 'vitoria_parcial') {
+          emblem = '🕊️'
+          title = 'Você chegou a 2030 — mas não com tudo resolvido'
+          subtitle =
+            'Nenhuma barra zerou e o sistema global seguiu de pé — ainda há desafios em aberto, e é isso que mantém o Conselho reunido. A construção continua.'
+        }
+
+        const estudoHtml = ESTUDO_BULLETS.map((b) => `<li>${escapeHtml(b)}</li>`).join('')
+
+        appRoot.innerHTML = `
+        <div class="parchment-card phase-end-card">
+          <div class="phase-end-emblem" aria-hidden="true">${emblem}</div>
+          <h2 class="phase-end-title">${escapeHtml(title)}</h2>
+          <p class="phase-end-sub">${escapeHtml(subtitle)}</p>
+
+          <div class="study-block">
+            <h3 style="font-size: 17px; font-weight: 700; color: #0A1A2F; margin-bottom: 10px; border-bottom: 2px solid var(--parchment-border); padding-bottom: 6px;">
+              📚 O que você estudou neste jogo
+            </h3>
+            <ul style="text-align: left; margin: 12px 0 0 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.55; color: #0A1A2F;">
+              ${estudoHtml}
+            </ul>
+          </div>
+
+          <div class="endgame-stats bars-summary" style="margin-top: 20px;">
+            <div class="summary-row">
+              <span style="font-weight: 700;">Turnos jogados</span>
+              <span style="font-weight: 800;">${state.turnosJogados}</span>
+            </div>
+            <div class="summary-row">
+              <span style="font-weight: 700;">Cards desbloqueados</span>
+              <span style="font-weight: 800;">${state.unlockedCardIds.length} de ${TOTAL_CARDS} cards</span>
+            </div>
+            <div class="summary-row">
+              <span style="color: var(--bar-econ-base); font-weight: 700;">Estabilidade Econômica</span>
+              <span style="font-weight: 800;">${clampBar(state.bars.econ)} / 100</span>
+            </div>
+            <div class="summary-row">
+              <span style="color: var(--bar-dir-base); font-weight: 700;">Direitos Humanos & Desenv.</span>
+              <span style="font-weight: 800;">${clampBar(state.bars.dir)} / 100</span>
+            </div>
+            <div class="summary-row">
+              <span style="color: var(--bar-hum-base); font-weight: 700;">Capacidade Humanitária</span>
+              <span style="font-weight: 800;">${clampBar(state.bars.hum)} / 100</span>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 18px;">
+            ${
+              isColapso
+                ? `
+              <button class="btn-gameover" id="btnCollapseBack" type="button">
+                Voltar ao último turno
+              </button>
+            `
+                : `
+              <button class="btn-primary" id="btnEndgameRestart" type="button" style="font-size: 18px; padding: 14px 32px;">
+                Jogar Novamente do Início
+              </button>
+            `
+            }
+          </div>
+        </div>
+      `
+
+        if (isColapso) {
+          document.getElementById('btnCollapseBack').addEventListener('click', () => {
+            handleCollapseBack()
+          })
+        } else {
+          document.getElementById('btnEndgameRestart').addEventListener('click', () => {
+            openResetConfirm()
+          })
+        }
+      }
+
+      /* =========================================================================
+       MODAL DE CONFIRMAÇÃO PRÓPRIA (SEM WINDOW.CONFIRM)
+       ========================================================================= */
+      const resetConfirmModalEl = document.getElementById('confirmModal')
+      // Foco no botão de cancelar ao abrir (acessibilidade)
+      const btnCancelResetEl = document.getElementById('btnCancelReset')
+
+      function openResetConfirm() {
+        resetConfirmModalEl.style.display = 'flex'
+        if (btnCancelResetEl) btnCancelResetEl.focus()
+      }
+
+      function closeResetConfirm() {
+        resetConfirmModalEl.style.display = 'none'
+      }
+
+      document.getElementById('btnConfirmReset').addEventListener('click', () => {
+        closeResetConfirm()
+        resetGameProgress()
+      })
+
+      document.getElementById('btnCancelReset').addEventListener('click', () => {
+        closeResetConfirm()
+      })
+
+      resetConfirmModalEl.addEventListener('click', (e) => {
+        if (e.target === resetConfirmModalEl) {
+          closeResetConfirm()
+        }
+      })
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && resetConfirmModalEl.style.display !== 'none') {
+          closeResetConfirm()
+        }
+      })
 
       /* =========================================================================
        UTILITÁRIOS
@@ -3206,6 +3402,10 @@
         const saved = loadSavedState()
         if (saved) {
           state = { ...INITIAL_STATE, ...saved }
+          // Saves antigos: sincronizar a fase corrente com o índice do turno
+          if (state.view !== 'intro' && state.view !== 'endgame') {
+            state.faseAtual = getPhaseOfTurn(state.turnIndex)
+          }
         }
         render()
       }
