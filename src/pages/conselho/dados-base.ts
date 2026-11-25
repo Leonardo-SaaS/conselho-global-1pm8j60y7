@@ -64,16 +64,42 @@ export const WIKIMEDIA_IMAGES = {
     caption: 'Hofburg, Viena — sede da Conferência Mundial de Direitos Humanos (1993)',
   },
   indigenas2014: {
-    url: 'https://upload.wikimedia.org/wikipedia/commons/9/9d/United_Nations_Headquarters_-_New_York_City.jpg',
+    url: 'https://upload.wikimedia.org/wikipedia/commons/e/ea/United_Nations_Headquarters_in_New_York_City%2C_view_from_Roosevelt_Island.jpg',
     emoji: '🪶',
     caption: 'Sede da ONU em Nova York — Conferência Mundial sobre Povos Indígenas (2014)',
   },
   ods2015: {
-    url: 'https://upload.wikimedia.org/wikipedia/commons/9/9d/United_Nations_Headquarters_-_New_York_City.jpg',
+    url: 'https://upload.wikimedia.org/wikipedia/commons/e/ea/United_Nations_Headquarters_in_New_York_City%2C_view_from_Roosevelt_Island.jpg',
     emoji: '🌍',
     caption: 'Sede da ONU em Nova York — Cimeira de Desenvolvimento Sustentável (2015)',
   },
+  onuHq: {
+    url: 'https://upload.wikimedia.org/wikipedia/commons/e/ea/United_Nations_Headquarters_in_New_York_City%2C_view_from_Roosevelt_Island.jpg',
+    emoji: '🕊️',
+    caption: 'Sede da ONU em Nova York',
+  },
+  acnurOnu: {
+    url: 'https://upload.wikimedia.org/wikipedia/commons/e/ea/United_Nations_Headquarters_in_New_York_City%2C_view_from_Roosevelt_Island.jpg',
+    emoji: '🕊️',
+    caption: 'Sede da ONU em Nova York — Alto Comissariado das Nações Unidas para Refugiados',
+  },
 }
+
+/* Bloco de estudo da tela final — 12 bullets, verbatim do conselho-global.html */
+export const ESTUDO_BULLETS = [
+  'O Sistema das Nações Unidas reúne 15 agências especializadas, 7 organizações relacionadas e diversos fundos e programas, coordenados pelo Ecosoc, com orçamento próprio vindo de contribuições.',
+  'FAO, OMS, Unesco e OIT são agências com grande impacto na defesa dos Direitos Humanos no dia a dia.',
+  'A Conferência de Bretton Woods (1944) criou o FMI e o Bird (Banco Mundial) e adotou o padrão dólar/ouro, com o objetivo de garantir estabilidade econômica como base da paz.',
+  'O câmbio fixo durou quase 30 anos; na década de 1970 passou-se ao câmbio flutuante, definido pela oferta e demanda de moeda estrangeira.',
+  'Unicef, Pnud e ACNUR não são agências, mas programas e fundos com autonomia financeira e administrativa.',
+  'A OMC substituiu o GATT em 1995 e regula o comércio global por meio de rodadas de negociação.',
+  'A Rodada de Doha (2001) travou no impasse entre abertura industrial e abertura agrícola, com o SSM como ponto central de divergência.',
+  'A ONU realizou conferências sobre Direitos Humanos: Viena (1993), as Conferências sobre as Mulheres, Povos Indígenas (2014) e a Cimeira de Nova York (2015).',
+  'A Agenda 2030 definiu 17 ODS e 169 metas a serem atingidas até 2030.',
+  'Em 2024, mais de 120 milhões de pessoas estavam deslocadas; mais da metade tem menos de 18 anos.',
+  "O ACNUR atua em 135 países; Kutupalong, em Cox's Bazar, é o maior campo de refugiados do mundo, com cerca de 800 mil rohingyas.",
+  'Apátridas são pessoas sem nacionalidade, sem acesso a direitos básicos como saúde, educação e emprego.',
+]
 
 // Lista dos 17 ODS (nomes curtos oficiais, pt-BR)
 export const ODS_LISTA = [
