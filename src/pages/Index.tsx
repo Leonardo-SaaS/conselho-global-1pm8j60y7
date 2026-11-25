@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CardData, TurnoData } from './conselho/dados-base'
+import { ESTUDO_BULLETS } from './conselho/dados-base'
 import { FASES } from './conselho/turnos-fase1'
 import { Obj169Joke, type Obj169Stage } from './conselho/Obj169Joke'
 
@@ -21,7 +22,9 @@ function getBarColor(type: 'econ' | 'dir' | 'hum', val: number) {
   return '#E8871E'
 }
 
-type View = 'intro' | 'turn' | 'consequence' | 'phase_end'
+type View = 'intro' | 'turn' | 'consequence' | 'phase_end' | 'collapse' | 'endgame'
+
+type Endgame = 'vitoria_plena' | 'vitoria_parcial'
 
 interface Snapshot {
   faseIdx: number
@@ -42,6 +45,9 @@ export default function Index() {
   const [bars, setBars] = useState({ econ: 50, dir: 50, hum: 50 })
   const [unlockedCardIds, setUnlockedCardIds] = useState<string[]>([])
   const [preWrongSnapshot, setPreWrongSnapshot] = useState<Snapshot | null>(null)
+  const [preCollapseSnapshot, setPreCollapseSnapshot] = useState<Snapshot | null>(null)
+  const [endgame, setEndgame] = useState<Endgame>('vitoria_parcial')
+  const [turnosJogados, setTurnosJogados] = useState(0)
   const [disabledOptionIds, setDisabledOptionIds] = useState<Record<number, string[]>>({})
   const [pendingConsequence, setPendingConsequence] = useState<PendingConsequence | null>(null)
   const [feedbackNotice, setFeedbackNotice] = useState<string | null>(null)
@@ -72,7 +78,26 @@ export default function Index() {
       if (Array.isArray(parsed.unlockedCardIds)) setUnlockedCardIds(parsed.unlockedCardIds)
       if (parsed.disabledOptionIds) setDisabledOptionIds(parsed.disabledOptionIds)
       if (parsed.preWrongSnapshot) setPreWrongSnapshot(parsed.preWrongSnapshot)
+      if (parsed.preCollapseSnapshot) setPreCollapseSnapshot(parsed.preCollapseSnapshot)
       if (parsed.obj169Stage) setObj169Stage(parsed.obj169Stage)
+      // Saves antigos não tinham endgame: recalcula ao reabrir a tela final
+      if (parsed.view === 'endgame' && parsed.bars) {
+        const b = parsed.bars
+        setEndgame(b.econ >= 60 && b.dir >= 60 && b.hum >= 60 ? 'vitoria_plena' : 'vitoria_parcial')
+      }
+      // Saves antigos sem view de colapso (ou colapso sem snapshot): volta ao turno
+      if (parsed.view === 'collapse' && !parsed.preCollapseSnapshot) setView('turn')
+      // Save no fim da Fase 4 (antes de existir a tela final): leva ao desfecho
+      if (
+        parsed.view === 'phase_end' &&
+        typeof parsed.faseIdx === 'number' &&
+        parsed.faseIdx === FASES.length - 1 &&
+        parsed.bars
+      ) {
+        const b = parsed.bars
+        setEndgame(b.econ >= 60 && b.dir >= 60 && b.hum >= 60 ? 'vitoria_plena' : 'vitoria_parcial')
+        setView('endgame')
+      }
     } catch {
       // ignora falhas de localStorage
     }
@@ -90,7 +115,10 @@ export default function Index() {
           unlockedCardIds,
           disabledOptionIds,
           preWrongSnapshot,
+          preCollapseSnapshot,
+          endgame,
           obj169Stage,
+          turnosJogados,
         }),
       )
     } catch {
@@ -104,7 +132,10 @@ export default function Index() {
     unlockedCardIds,
     disabledOptionIds,
     preWrongSnapshot,
+    preCollapseSnapshot,
+    endgame,
     obj169Stage,
+    turnosJogados,
   ])
 
   // Limpa o timer da piada dos 169 ao desmontar
@@ -142,6 +173,9 @@ export default function Index() {
     setBars({ econ: 50, dir: 50, hum: 50 })
     setUnlockedCardIds([])
     setPreWrongSnapshot(null)
+    setPreCollapseSnapshot(null)
+    setEndgame('vitoria_parcial')
+    setTurnosJogados(0)
     setDisabledOptionIds({})
     setPendingConsequence(null)
     setFeedbackNotice(null)
@@ -150,6 +184,15 @@ export default function Index() {
     setIsArchiveOpen(false)
     setObj169Stage('aguardando')
   }
+
+  const checkDefeat = (b: { econ: number; dir: number; hum: number }) =>
+    b.econ <= 0 || b.dir <= 0 || b.hum <= 0
+
+  const totalCards = FASES.reduce((acc, f) => acc + f.turnos.filter((t) => t.card).length, 0)
+
+  // Índice global do turno atual (1-based), somando os turnos das fases anteriores
+  const turnoGlobal =
+    FASES.slice(0, faseIdx).reduce((acc, f) => acc + f.turnos.length, 0) + turnIdx + 1
 
   const handleChoiceClick = (opcaoIndex: number) => {
     if (!currentTurn) return
@@ -165,18 +208,33 @@ export default function Index() {
           chosen.consequencia || 'A decisão resultou em instabilidade global severa.',
       })
       setFeedbackNotice('A proposta avança...')
-      if (chosen.efeitos) {
-        setBars({
-          econ: clampBar(bars.econ + chosen.efeitos[0]),
-          dir: clampBar(bars.dir + chosen.efeitos[1]),
-          hum: clampBar(bars.hum + chosen.efeitos[2]),
-        })
+
+      // Snapshot pré-escolha (para o "Voltar ao último turno" do colapso)
+      const snapshot: Snapshot = { faseIdx, turnIdx, bars: { ...bars } }
+      const novasBars = chosen.efeitos
+        ? {
+            econ: clampBar(bars.econ + chosen.efeitos[0]),
+            dir: clampBar(bars.dir + chosen.efeitos[1]),
+            hum: clampBar(bars.hum + chosen.efeitos[2]),
+          }
+        : bars
+
+      // DERROTA: barra zerada com a opção errada → tela de colapso
+      if (checkDefeat(novasBars)) {
+        setBars(novasBars)
+        setPreCollapseSnapshot(snapshot)
+        setView('collapse')
+        return
       }
+
+      if (chosen.efeitos) setBars(novasBars)
       setView('consequence')
       return
     }
 
     // Escolha correta ou rotina
+    // Snapshot das barras ANTES de aplicar efeitos (para o colapso)
+    const preChoiceSnapshot: Snapshot = { faseIdx, turnIdx, bars: { ...bars } }
     if (chosen.efeitos) {
       setBars({
         econ: clampBar(bars.econ + chosen.efeitos[0]),
@@ -185,6 +243,24 @@ export default function Index() {
       })
     }
     setFeedbackNotice(null)
+    setTurnosJogados((prev) => Math.max(prev, turnoGlobal))
+
+    // Cálculo das barras após os efeitos, para checar derrota
+    const novasBars = chosen.efeitos
+      ? {
+          econ: clampBar(bars.econ + chosen.efeitos[0]),
+          dir: clampBar(bars.dir + chosen.efeitos[1]),
+          hum: clampBar(bars.hum + chosen.efeitos[2]),
+        }
+      : bars
+
+    // DERROTA: qualquer barra a 0 em qualquer momento → colapso
+    if (checkDefeat(novasBars)) {
+      setBars(novasBars)
+      setPreCollapseSnapshot(preChoiceSnapshot)
+      setView('collapse')
+      return
+    }
 
     if (turnIdx + 1 < fase.turnos.length) {
       const nextTurnIdx = turnIdx + 1
@@ -192,8 +268,39 @@ export default function Index() {
       setObj169Stage('aguardando')
       setView('turn')
       checkAndOpenTurnCard(faseIdx, nextTurnIdx, unlockedCardIds)
-    } else {
+    } else if (faseIdx + 1 < FASES.length) {
       setView('phase_end')
+    } else {
+      // Fim da Fase 4 (última): desfecho final
+      setBars(novasBars)
+      setEndgame(
+        novasBars.econ >= 60 && novasBars.dir >= 60 && novasBars.hum >= 60
+          ? 'vitoria_plena'
+          : 'vitoria_parcial',
+      )
+      setView('endgame')
+    }
+  }
+
+  const handleCollapseBack = () => {
+    if (preCollapseSnapshot) {
+      setBars({ ...preCollapseSnapshot.bars })
+      setFaseIdx(preCollapseSnapshot.faseIdx)
+      setTurnIdx(preCollapseSnapshot.turnIdx)
+    } else {
+      // Sem snapshot (ex.: barras zeradas por save antigo): volta ao turno 1
+      setFaseIdx(0)
+      setTurnIdx(0)
+      setBars({ econ: 50, dir: 50, hum: 50 })
+    }
+    setPreCollapseSnapshot(null)
+    setView('turn')
+    // Reabrir o card do turno (já desbloqueado), sem bloquear
+    const turno = FASES[faseIdx].turnos[turnIdx]
+    if (turno?.card) {
+      setImageFailed(false)
+      setActiveCardModal(turno.card)
+      setIsCardModalBlocking(false)
     }
   }
 
@@ -567,6 +674,101 @@ export default function Index() {
                 Jogar Novamente do Início
               </button>
             </div>
+          </div>
+        )}
+
+        {/* VIEW 5: COLAPSO */}
+        {view === 'collapse' && (
+          <div className="bg-gradient-to-br from-[#30171D] via-[#1A0D11] to-[#0F0609] border-2 border-[#84232F] rounded-2xl p-7 md:p-10 text-white shadow-[0_10px_40px_rgba(0,0,0,0.8)] text-center">
+            <div className="text-5xl mb-3" aria-hidden="true">
+              📉
+            </div>
+            <h2
+              className="text-2xl md:text-3xl font-bold text-[#FFD4D8] mb-4 leading-tight"
+              style={{ fontFamily: 'Georgia, serif' }}
+            >
+              Colapso do Conselho
+            </h2>
+            <p className="text-lg md:text-xl text-[#F1D9DC] leading-relaxed mb-8 max-w-3xl mx-auto">
+              Uma das barras de equilíbrio chegou a zero e o sistema global não resistiu. Mas toda
+              decisão pode ser refeita.
+            </p>
+            <button
+              type="button"
+              onClick={handleCollapseBack}
+              className="bg-[#B23A48] hover:bg-[#962F3C] border border-[#D64545] text-white text-base md:text-lg font-bold px-7 py-3.5 rounded-lg shadow-[0_4px_16px_rgba(178,58,72,0.4)] transition-all transform hover:-translate-y-0.5 cursor-pointer motion-reduce:transform-none"
+            >
+              Voltar ao último turno
+            </button>
+          </div>
+        )}
+
+        {/* VIEW 6: TELA FINAL (vitória plena ou parcial) */}
+        {view === 'endgame' && (
+          <div className="relative bg-[#F6F1E7] border border-[#D9CFBA] rounded-2xl p-8 md:p-12 text-[#1E2A38] shadow-[0_10px_30px_rgba(0,0,0,0.45)] text-center">
+            <div className="absolute inset-1.5 border border-dashed border-[#C9A227]/40 rounded-xl pointer-events-none" />
+            <div className="text-5xl mb-3" aria-hidden="true">
+              {endgame === 'vitoria_plena' ? '🏆' : '🕊️'}
+            </div>
+            <h2
+              className="text-2xl md:text-3xl font-bold text-[#0A1A2F] mb-2"
+              style={{ fontFamily: 'Georgia, serif' }}
+            >
+              {endgame === 'vitoria_plena'
+                ? 'Vitória Plena — 2030'
+                : 'Você chegou a 2030 — mas não com tudo resolvido'}
+            </h2>
+            <p className="text-base md:text-lg text-[#55677B] mb-7 max-w-2xl mx-auto leading-relaxed">
+              {endgame === 'vitoria_plena'
+                ? 'As três barras terminaram acima de 60: estabilidade econômica, direitos humanos e capacidade humanitária garantidos até 2030.'
+                : 'Nenhuma barra zerou e o sistema global seguiu de pé — ainda há desafios em aberto, e é isso que mantém o Conselho reunido. A construção continua.'}
+            </p>
+
+            {/* Bloco de estudo — 12 bullets verbatim de dados-base.ts */}
+            <div className="bg-white border border-[#D9CFBA] rounded-xl p-5 md:p-6 max-w-2xl mx-auto mb-7 text-left">
+              <h3 className="text-base font-bold text-[#0A1A2F] border-b border-[#D9CFBA] pb-2 mb-3">
+                📚 O que você estudou neste jogo
+              </h3>
+              <ul className="flex flex-col gap-2 text-sm md:text-[15px] leading-relaxed text-[#0A1A2F] list-disc pl-5">
+                {ESTUDO_BULLETS.map((bullet) => (
+                  <li key={bullet.slice(0, 40)}>{bullet}</li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Estatísticas do jogo */}
+            <div className="bg-white border border-[#D9CFBA] rounded-xl p-5 max-w-md mx-auto mb-7 text-left">
+              <div className="flex justify-between py-1.5 border-b border-gray-100 text-sm md:text-base">
+                <span className="font-bold text-[#0A1A2F]">Turnos jogados</span>
+                <span className="font-extrabold">{turnosJogados}</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-gray-100 text-sm md:text-base">
+                <span className="font-bold text-[#0A1A2F]">Cards desbloqueados</span>
+                <span className="font-extrabold">
+                  {unlockedCardIds.length} de {totalCards} cards
+                </span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-gray-100 text-sm md:text-base">
+                <span className="text-[#2E7DD1] font-bold">Estabilidade Econômica</span>
+                <span className="font-extrabold">{clampBar(bars.econ)} / 100</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-gray-100 text-sm md:text-base">
+                <span className="text-[#2E9E5B] font-bold">Direitos Humanos & Desenv.</span>
+                <span className="font-extrabold">{clampBar(bars.dir)} / 100</span>
+              </div>
+              <div className="flex justify-between py-1.5 text-sm md:text-base">
+                <span className="text-[#E8871E] font-bold">Capacidade Humanitária</span>
+                <span className="font-extrabold">{clampBar(bars.hum)} / 100</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleResetGame}
+              className="bg-[#009EDB] hover:bg-[#0084B8] text-white font-bold text-lg px-8 py-3.5 rounded-lg shadow-md cursor-pointer"
+            >
+              Jogar Novamente do Início
+            </button>
           </div>
         )}
       </main>
